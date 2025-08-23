@@ -1,3 +1,10 @@
 {
-  "files": []
+  "files": [
+    "greetings.json",
+    "family.json",
+    "health.json",
+    "work.json",
+    "polite.json",
+    "kids.json"
+  ]
 }
