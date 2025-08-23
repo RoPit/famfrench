@@ -1,0 +1,29 @@
+{
+  "name": "Essen & Trinken",
+  "phrases": [
+    { "fr": "On mange quoi ?", "en": "Was essen wir?", "hint": "ohn monzh kwa" },
+    { "fr": "Tu as faim ?", "en": "Hast du Hunger?", "hint": "tü ah fan" },
+    { "fr": "Tu as soif ?", "en": "Hast du Durst?", "hint": "tü ah swaf" },
+    { "fr": "Tu veux un café ?", "en": "Möchtest du einen Kaffee?", "hint": "tü vö ä ka-FÄ" },
+    { "fr": "Un thé ou un café ?", "en": "Tee oder Kaffee?", "hint": "än te o͜o ä ka-FÄ" },
+    { "fr": "Avec lait ou sans lait ?", "en": "Mit Milch oder ohne?", "hint": "avek lä u sohn lä" },
+    { "fr": "Sucré ou pas ?", "en": "Gesüßt oder nicht?", "hint": "sü-krä u pah" },
+    { "fr": "Tu veux un verre d’eau ?", "en": "Willst du ein Glas Wasser?", "hint": "tü vö ä ver do" },
+    { "fr": "C’est prêt !", "en": "Ist fertig!", "hint": "seh prä" },
+    { "fr": "À table !", "en": "Essen ist fertig! / Zu Tisch!", "hint": "a tabl" },
+    { "fr": "Bon app’ !", "en": "Guten Appetit!", "hint": "bon ap" },
+    { "fr": "C’est délicieux !", "en": "Das ist lecker!", "hint": "seh deh-li-sjöh" },
+    { "fr": "Tu en veux encore ?", "en": "Möchtest du noch etwas?", "hint": "tü on vö on-kor" },
+    { "fr": "Qui veut encore ?", "en": "Wer möchte Nachschlag?", "hint": "ki vö on-kor" },
+    { "fr": "Juste un peu.", "en": "Nur ein bisschen.", "hint": "schüst ö pa" },
+    { "fr": "C’est trop pour moi.", "en": "Das ist zu viel für mich.", "hint": "seh tro pur mwa" },
+    { "fr": "Tu peux passer le sel ?", "en": "Kannst du das Salz rübergeben?", "hint": "tü pö pa-seh lö sel" },
+    { "fr": "Tu cuisines super bien !", "en": "Du kochst super!", "hint": "tü kü-zin sü-per byan" },
+    { "fr": "On commande ce soir ?", "en": "Bestellen wir heute Abend was?", "hint": "on ko-mond sö swar" },
+    { "fr": "Pizza ou pâtes ?", "en": "Pizza oder Pasta?", "hint": "piza u pat" },
+    { "fr": "Tu es végétarien(ne) ?", "en": "Bist du Vegetarier(in)?", "hint": "tü ä ve-zhe-ta-rjenn" },
+    { "fr": "Sans gluten / sans lactose ?", "en": "Glutenfrei / laktosefrei?", "hint": "sohn glü-ten / sohn lak-toz" },
+    { "fr": "Je fais la vaisselle.", "en": "Ich spüle ab.", "hint": "zhö fä la wä-sell" },
+    { "fr": "Laisse, je m’en occupe.", "en": "Lass, ich kümmere mich.", "hint": "läss, zhö mon no-küp" }
+  ]
+}
