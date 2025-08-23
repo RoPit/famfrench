@@ -1,10 +1,6 @@
 {
   "files": [
-    "greetings.json",
-    "family.json",
-    "health.json",
-    "work.json",
-    "visits.json",
-    "food.json"
+    "food.json",
+    "visits.json"
   ]
 }
