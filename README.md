@@ -18,7 +18,7 @@ Besonderer Fokus: **Verstehen, Nachsprechen & gute Aussprache**.
 
 ## Nutzung
 1. Rufe die Seite auf:  
-   👉 [https://RoPi.github.io/famfrench/](https://RoPi.github.io/famfrench/)  
+   👉 [https://RoPit.github.io/famfrench/](https://RoPit.github.io/famfrench/)  
    (ersetze **USERNAME** durch deinen GitHub-Nutzernamen)  
 
 2. Öffne im Chrome-Browser (z. B. auf deinem Galaxy S25 Ultra).  
