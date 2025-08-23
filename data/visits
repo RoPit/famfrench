@@ -1,0 +1,29 @@
+{
+  "name": "Besuch & Einladen",
+  "phrases": [
+    { "fr": "Tu passes à la maison ?", "en": "Kommst du bei uns vorbei?", "hint": "tü pass a la mä-son" },
+    { "fr": "On se voit ce soir ?", "en": "Sehen wir uns heute Abend?", "hint": "on sö vwa sö swar" },
+    { "fr": "À quelle heure tu arrives ?", "en": "Um wie viel Uhr kommst du?", "hint": "a kel ör tü a-riv" },
+    { "fr": "Tu me dis quand t’es là.", "en": "Sag Bescheid, wenn du da bist.", "hint": "tü mö di kon te la" },
+    { "fr": "J’ouvre la porte.", "en": "Ich mach dir auf.", "hint": "schuvr la port" },
+    { "fr": "Fais comme chez toi.", "en": "Fühl dich wie zu Hause.", "hint": "feh kom sche twa" },
+    { "fr": "Tu veux quelque chose à boire ?", "en": "Möchtest du etwas trinken?", "hint": "tü vö kelk schos a bwar" },
+    { "fr": "On s’installe au salon.", "en": "Setzen wir uns ins Wohnzimmer.", "hint": "on sän-stall o sa-lon" },
+    { "fr": "Tu es bien installé(e) ?", "en": "Sitzt du bequem?", "hint": "tü ä byan än-sta-le" },
+    { "fr": "On regarde un film ?", "en": "Schauen wir einen Film?", "hint": "on rö-gard äN film" },
+    { "fr": "On joue aux cartes ?", "en": "Spielen wir Karten?", "hint": "on schu o kart" },
+    { "fr": "Ça te dit une balade ?", "en": "Lust auf einen Spaziergang?", "hint": "sa tö di ün ba-lad" },
+    { "fr": "Tu veux rester manger ?", "en": "Magst du zum Essen bleiben?", "hint": "tü vö res-te mon-zhe" },
+    { "fr": "Tu dors ici si tu veux.", "en": "Du kannst hier schlafen, wenn du willst.", "hint": "tü dor i-si si tü vö" },
+    { "fr": "Merci d’être venu(e) !", "en": "Danke fürs Kommen!", "hint": "mehr-si dätR vö-nü" },
+    { "fr": "Rentre bien !", "en": "Komm gut heim!", "hint": "rontr byan" },
+    { "fr": "Tu me tiens au courant ? ", "en": "Meldest du dich?", "hint": "tü mö tjän o ku-ron" },
+    { "fr": "On remet ça bientôt.", "en": "Das machen wir bald wieder.", "hint": "on rö-mä sa byan-to" },
+    { "fr": "C’était super de te voir.", "en": "War toll, dich zu sehen.", "hint": "seh-te sü-per dö tö vwar" },
+    { "fr": "Tu peux amener quelque chose ?", "en": "Kannst du etwas mitbringen?", "hint": "tü pö a-me-nä kelk schos" },
+    { "fr": "On fait ça chez nous / chez toi ?", "en": "Bei uns oder bei dir?", "hint": "on fä sa sche nu / sche twa" },
+    { "fr": "J’apporte le dessert.", "en": "Ich bringe den Nachtisch mit.", "hint": "zha-port lö deh-sär" },
+    { "fr": "Je passe demain matin.", "en": "Ich schaue morgen früh vorbei.", "hint": "zhö pass dö-män ma-tän" },
+    { "fr": "Tu m’envoies l’adresse ?", "en": "Schickst du mir die Adresse?", "hint": "tü mon-vwa la-dress" }
+  ]
+}
