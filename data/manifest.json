@@ -1,3 +1,4 @@
+
 {
   "files": [
     "family_plus1.json",
@@ -5,6 +6,8 @@
     "food.json",
     "food_plus1.json",
     "food_plus2.json",
+    "greetings_nl_plus1.json",
+    "greetings_nl_plus2.json",
     "greetings_plus1.json",
     "greetings_plus2.json",
     "health_plus1.json",
