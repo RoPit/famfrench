@@ -6,9 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FamLang – informell, familiär (FR ⇄ NL)</title>
   <style>
-    :root{
-      --bg:#0f1115;--fg:#e8ebf0;--muted:#9aa3b2;--card:#151822;--accent:#5aa9ff;--chip:#232738;--ring:#2b3246;--ok:#45d483;
-    }
+    :root{ --bg:#0f1115;--fg:#e8ebf0;--muted:#9aa3b2;--card:#151822;--accent:#5aa9ff;--chip:#232738;--ring:#2b3246;--ok:#45d483; }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg)}
     .wrap{max-width:980px;margin:24px auto;padding:0 16px}
@@ -18,7 +16,7 @@
     .search{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:10px 12px}
     .search input{flex:1;background:transparent;border:0;outline:none;color:var(--fg);font-size:16px}
     .filters{display:flex;gap:8px;flex-wrap:wrap}
-    select,button{background:var(--chip);color:var(--fg);border:1px solid var(--ring);border-radius:14px;padding:10px 12px;font-size:14px;cursor:pointer}
+    select,button{background:var(--chip);color:var(--fg);border:1px solid var(--ring);border-radius:14px;padding:10px 12px;font-size:14px}
     button[aria-pressed="true"]{outline:2px solid var(--accent)}
     .flags{display:flex;gap:8px}
     .flag{width:34px;height:24px;border-radius:6px;border:1px solid var(--ring);cursor:pointer;opacity:.75}
@@ -26,9 +24,10 @@
     .grid{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0 36px}
     @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
     .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:14px 14px}
+    .card button.say{margin-top:8px}
     .cat{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--ring);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
-    .row{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
-    .txt-main{font-size:18px;margin:6px 0 2px;font-weight:700;cursor:pointer}
+    .row{display:flex;gap:10px;align-items:flex-start}
+    .txt-main{font-size:18px;margin:6px 0 2px;font-weight:700}
     .txt-sub{font-size:16px;margin:2px 0;color:#d7dbef}
     .txt-de{font-size:13px;margin:8px 0 0;color:var(--muted)}
     .empty{margin:24px 0;color:var(--muted)}
@@ -55,39 +54,69 @@
   <select id="category">
     <option value="">Alle Kategorien</option>
   </select>
-  <button id="show-today" class="pill" aria-pressed="true">Heute</button>
-  <button id="show-all" class="pill" aria-pressed="false">Alle</button>
+  <button id="show-today" class="pill" aria-pressed="false">Heute</button>
+  <button id="show-all" class="pill" aria-pressed="true">Alle</button>
   <button id="show-packs" class="pill" aria-pressed="false">Packs</button>
+  <button id="tts-toggle" class="pill" aria-pressed="false" title="Vorlesen beim Antippen aktivieren/deaktivieren">🔊 Auto‑TTS: Aus</button>
 </div>
 
 <div id="results" class="grid" aria-live="polite"></div>
 <div id="empty" class="empty" hidden>Keine Einträge gefunden.</div>
 
 <footer>
-  <div>Hinweis: Manifest & JSON werden relativ zur aktuellen Seite geladen.<br>Wenn dein Repo <code>/data</code> enthält, trage die Dateien in <code>manifest.json</code> ein (ohne führenden Slash).</div>
+  <div>Hinweis: Manifest & JSON werden relativ zur aktuellen Seite geladen.<br>Wenn dein Repo <code>/data</code> enthält, trage die Dateien in <code>manifest.json</code> ein (ohne führenden Slash). Optional kannst du <code>todayPacks</code> in der Manifest-Datei definieren, um die „Heute“-Ansicht zu steuern.</div>
 </footer>
 
   </div><script>
 (() => {
+  // ---- Utilities
   const $ = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-  const BASE = new URL('./', window.location.href);
+  const BASE = new URL('./', window.location.href); // robust for GitHub Pages subpaths
   const urlFor = (p) => new URL(p, BASE).toString();
-  const fetchJson = async (p) => { const res = await fetch(urlFor(p), { cache: 'no-store' }); if (!res.ok) throw new Error(`Fetch failed ${p}: ${res.status}`); return res.json(); };
+  const fetchJson = async (p) => {
+    const res = await fetch(urlFor(p), { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Fetch failed ${p}: ${res.status}`);
+    return res.json();
+  };
 
-  const state = { primary:'fr', secondary:'nl', show:'today', category:'', q:'', items:[], categories:new Set() };
+  // ---- UI State
+  const state = {
+    primary: 'fr',      // main display language
+    secondary: 'nl',    // secondary line
+    show: 'all',        // 'all' | 'today' | 'packs'
+    category: '',       // category filter
+    q: '',              // search term
+    items: [],          // flattened items
+    categories: new Set(),
+    todaySet: new Set(),
+    tts: { enabled:false, voices:[], ready:false }
+  };
 
-  const svgFR='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><rect width="1" height="2" fill="#0055A4"/><rect width="1" height="2" x="1" fill="#fff"/><rect width="1" height="2" x="2" fill="#EF4135"/></svg>`);
-  const svgNL='data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><rect width="3" height="2" fill="#21468B"/><rect width="3" height="1.333" y="0.333" fill="#fff"/><rect width="3" height="0.666" y="0" fill="#AE1C28"/></svg>`);
-  $('#flag-fr').src=svgFR; $('#flag-nl').src=svgNL;
+  // ---- Flags (SVG inline to avoid external requests)
+  const svgFR = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2">
+      <rect width="1" height="2" x="0" y="0" fill="#0055A4"/>
+      <rect width="1" height="2" x="1" y="0" fill="#fff"/>
+      <rect width="1" height="2" x="2" y="0" fill="#EF4135"/>
+    </svg>`);
+  const svgNL = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2">
+      <rect width="3" height="2" fill="#21468B"/>
+      <rect width="3" height="1.333" y="0.333" fill="#fff"/>
+      <rect width="3" height="0.666" y="0" fill="#AE1C28"/>
+    </svg>`);
+  $('#flag-fr').src = svgFR; $('#flag-nl').src = svgNL;
 
-  $('#flag-fr').addEventListener('click',()=>setLang('fr','nl'));
-  $('#flag-nl').addEventListener('click',()=>setLang('nl','fr'));
-  $('#q').addEventListener('input',(e)=>{state.q=e.target.value.trim().toLowerCase();render();});
-  $('#category').addEventListener('change',(e)=>{state.category=e.target.value;render();});
-  $('#show-today').addEventListener('click',()=>setShow('today'));
-  $('#show-all').addEventListener('click',()=>setShow('all'));
-  $('#show-packs').addEventListener('click',()=>setShow('packs'));
+  // ---- Event wiring
+  $('#flag-fr').addEventListener('click', () => setLang('fr','nl'));
+  $('#flag-nl').addEventListener('click', () => setLang('nl','fr'));
+  $('#q').addEventListener('input', (e)=>{ state.q = e.target.value.trim().toLowerCase(); render(); });
+  $('#category').addEventListener('change', (e)=>{ state.category = e.target.value; render(); });
+  $('#show-today').addEventListener('click', ()=>{ setShow('today'); });
+  $('#show-all').addEventListener('click', ()=>{ setShow('all'); });
+  $('#show-packs').addEventListener('click', ()=>{ setShow('packs'); });
+  $('#tts-toggle').addEventListener('click', ()=>{ state.tts.enabled = !state.tts.enabled; updateTtsToggle(); });
 
   function setShow(mode){
     state.show = mode;
@@ -95,39 +124,164 @@
     $('#show-all').setAttribute('aria-pressed', mode==='all');
     $('#show-packs').setAttribute('aria-pressed', mode==='packs');
     render();
-  }catch(err){showError(err);} }
+  }
 
-  function guessCategory(path){ return (path.split('/').pop()||'').replace(/_/g,' ').replace(/\..+$/,''); }
-  function buildCategorySelect(){ const sel=$('#category'); const current=sel.value; sel.innerHTML='<option value="">Alle Kategorien</option>'+Array.from(state.categories).sort().map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join(''); sel.value=current||''; }
+  function setLang(primary, secondary){
+    state.primary = primary; state.secondary = secondary;
+    $$('.flag').forEach(f=>f.classList.remove('active'));
+    if(primary==='fr') $('#flag-fr').classList.add('active');
+    if(primary==='nl') $('#flag-nl').classList.add('active');
+    renderTitle();
+    render();
+  }
+
+  function renderTitle(){
+    const h = $('header h1');
+    const pair = state.primary==='fr' ? 'FR ⇄ NL' : 'NL ⇄ FR';
+    h.innerHTML = `FamLang – informell, familiär <small style="font-weight:500;color:var(--muted)">(${pair})</small>`;
+  }
+
+  // ---- Data loading
+  async function loadAll(){
+    try{
+      // Manifest schema: { packs: ["data/greetings_plus1.json", ...], optional todayPacks, optional categoryNames map }
+      const manifest = await fetchJson('data/manifest.json');
+      const packs = Array.isArray(manifest.packs) ? manifest.packs : [];
+      state.todaySet = new Set(Array.isArray(manifest.todayPacks) ? manifest.todayPacks : []);
+
+      const results = await Promise.all(packs.map(async p => ({ path:p, raw: await fetchJson(p) })));
+
+      state.items = [];
+      state.categories = new Set();
+
+      for(const {path, raw} of results){
+        // Accept both array and object with { name, phrases: [...] }
+        const rows = Array.isArray(raw) ? raw : (Array.isArray(raw?.phrases) ? raw.phrases : []);
+        const category = (manifest.categoryNames && manifest.categoryNames[path]) || (raw && raw.name) || guessCategory(path);
+        state.categories.add(category);
+
+        if(Array.isArray(rows)){
+          rows.forEach((row, idx)=>{
+            // Normalise keys: fr/nl/de (fallback to en for de). Optional hint and date.
+            const fr = row.fr ?? '';
+            const nl = row.nl ?? '';
+            const de = (row.de ?? row.en ?? '');
+            const hint = row.hint ?? '';
+            const date = row.date || '';
+            state.items.push({ id:`${path}#${idx}`, category, fr:String(fr), nl:String(nl), de:String(de), hint:String(hint), pack:path, date:String(date) });
+          });
+        }
+      }
+      buildCategorySelect();
+      render();
+    }catch(err){ showError(err); }
+  }
+
+  function guessCategory(path){
+    const file = path.split('/').pop();
+    return (file||'').replace(/_/g,' ').replace(/\..+$/,'');
+  }
+
+  function buildCategorySelect(){
+    const sel = $('#category');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">Alle Kategorien</option>' +
+      Array.from(state.categories).sort().map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    sel.value = current || '';
+  }
 
   function render(){
-    const list=$('#results'); const empty=$('#empty'); list.innerHTML='';
-    let view=state.items.slice();
-    if(state.category) view=view.filter(x=>x.category===state.category);
-    if(state.q){ const q=state.q; view=view.filter(x=>(x.fr.toLowerCase().includes(q)||x.nl.toLowerCase().includes(q)||x.de.toLowerCase().includes(q)||x.hint.toLowerCase().includes(q))); }
-    if(state.show==='today'){ const today=new Date().toDateString(); view=view.filter(x=>new Date(x.ts).toDateString()===today); }
-    if(!view.length){ empty.hidden=false; return; } else { empty.hidden=true; }
-    const frag=document.createDocumentFragment();
+    const list = $('#results');
+    const empty = $('#empty');
+    list.innerHTML = '';
+
+    let view = state.items.slice();
+    if(state.category){ view = view.filter(x=>x.category===state.category); }
+    if(state.q){
+      const q = state.q;
+      view = view.filter(x => (x.fr.toLowerCase().includes(q) || x.nl.toLowerCase().includes(q) || x.de.toLowerCase().includes(q)) );
+    }
+    if(state.show==='today'){
+      const todayISO = new Date().toISOString().slice(0,10);
+      view = view.filter(x => state.todaySet.size>0 ? state.todaySet.has(x.pack) : (x.date && x.date.startsWith(todayISO)) );
+    }
+
+    if(!view.length){ empty.hidden = false; return; } else { empty.hidden = true; }
+
+    const frag = document.createDocumentFragment();
     for(const item of view){
-      const card=document.createElement('div'); card.className='card';
-      card.innerHTML=`
-        <div class="row"><span class="cat">${escapeHtml(item.category)}</span><span class="cat">${escapeHtml(item.pack.split('/').pop())}</span></div>
-        <div class="txt-main" data-say="${escapeHtml(item[state.primary]||'')}">${escapeHtml(item[state.primary]||'')}</div>
-        <div class="txt-sub">${escapeHtml(item[state.secondary]||'')}</div>
-        <div class="txt-de">${escapeHtml(item.de||'')}${item.hint?' · <em>Hint: '+escapeHtml(item.hint)+'</em>':''}</div>`;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="row" style="justify-content:space-between">
+          <span class="cat" title="Kategorie">${escapeHtml(item.category)}</span>
+          <span class="cat" title="Paket">${escapeHtml(item.pack.split('/').pop())}</span>
+        </div>
+        <div class="txt-main">${escapeHtml(item[state.primary] || '')}</div>
+        <div class="txt-sub">${escapeHtml(item[state.secondary] || '')}</div>
+        <div class="txt-de">${escapeHtml(item.de || '')}${item.hint ? ' · <em>Hint: ' + escapeHtml(item.hint) + '</em>' : ''}</div>
+      `;
       frag.appendChild(card);
     }
     list.appendChild(frag);
-    // attach TTS events
-    $$('.txt-main',list).forEach(el=>el.addEventListener('click',()=>speak(el.dataset.say,state.primary)));
   }
 
-  function speak(text,lang){ if(!text) return; const u=new SpeechSynthesisUtterance(text); u.lang=lang==='fr'?'fr-FR':'nl-NL'; speechSynthesis.speak(u); }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  }
+  
+  // attribute-safe
+  function escapeAttr(s){
+    return escapeHtml(s).replace(/`/g,'&#96;');
+  }
 
-  function escapeHtml(s){ return s.replace(/[&<>\"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch])); }
-  function showError(err){ $('#empty').hidden=false; $('#empty').textContent='Fehler beim Laden: '+(err?.message||err); console.error(err); }
+  function showError(err){
+    $('#empty').hidden = false;
+    $('#empty').textContent = 'Fehler beim Laden: ' + (err?.message || err);
+    console.error(err);
+  }
 
-  setLang('fr','nl'); loadAll();
+  // ---- TTS (Web Speech API)
+  function initTTS(){
+    if(!('speechSynthesis' in window)) return;
+    const loadVoices = () => { state.tts.voices = window.speechSynthesis.getVoices(); state.tts.ready = true; };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    // Event delegation: click on a card speaks the primary text when Auto‑TTS is ON
+    $('#results').addEventListener('click', (e)=>{
+      const card = e.target.closest('.card');
+      if(!card) return;
+      if(!state.tts.enabled) return;
+      const main = card.querySelector('.txt-main');
+      const text = main ? main.textContent.trim() : '';
+      const lang = state.primary === 'nl' ? 'nl-NL' : 'fr-FR';
+      speak(text, lang);
+    });
+  }
+
+  function updateTtsToggle(){
+    const b = $('#tts-toggle');
+    b.setAttribute('aria-pressed', state.tts.enabled);
+    b.textContent = state.tts.enabled ? '🔊 Auto‑TTS: An' : '🔊 Auto‑TTS: Aus';
+  }
+
+  function speak(text, lang){
+    if(!text) return;
+    try{
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      const v = state.tts.voices.find(v=>v.lang && v.lang.startsWith(lang.slice(0,2)));
+      if(v) u.voice = v;
+      window.speechSynthesis.speak(u);
+    }catch{ /* ignore */ }
+  }
+
+  // ---- Init
+  setLang('fr','nl');
+  initTTS();
+  updateTtsToggle();
+  loadAll();
 })();
 </script></body>
 </html>
