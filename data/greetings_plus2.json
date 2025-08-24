@@ -1,0 +1,17 @@
+{
+  "name": "Begrüßungen & Alltag (Plus 2)",
+  "phrases": [
+    {"fr":"Bonne matinée !","en":"Schönen Vormittag!","hint":"bon ma-ti-nä"},
+    {"fr":"Passe une bonne journée !","en":"Hab einen schönen Tag!","hint":"pass Ün bon zhoor-nä"},
+    {"fr":"Bon week-end !","en":"Schönes Wochenende!","hint":"bon week-ÄND"},
+    {"fr":"Ravi de te revoir.","en":"Schön, dich wiederzusehen.","hint":"ra-vi dö tö rö-vwar"},
+    {"fr":"Content pour toi !","en":"Freut mich für dich!","hint":"kon-tan pur twa"},
+    {"fr":"T’as deux minutes ?","en":"Hast du kurz Zeit?","hint":"ta dö mi-nüt"},
+    {"fr":"On se capte plus tard.","en":"Wir hören uns später.","hint":"on sö kapt plu tar"},
+    {"fr":"Bon retour !","en":"Willkommen zurück!","hint":"bon rö-tur"},
+    {"fr":"Bienvenue chez nous !","en":"Willkommen bei uns!","hint":"byan-vö-nü sche nu"},
+    {"fr":"Je te présente…","en":"Ich stelle dir … vor","hint":"zhö tö prä-zont"},
+    {"fr":"Ça me va.","en":"Passt für mich.","hint":"sa mö va"},
+    {"fr":"Impeccable !","en":"Einwandfrei!","hint":"am-pe-kabl"}
+  ]
+}
