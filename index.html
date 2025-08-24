@@ -43,6 +43,7 @@
     </header><div class="bar">
   <div class="search" role="search">
     <input id="q" type="search" placeholder="Suche (FR/NL/DE)…" autocomplete="off" />
+    <button id="mic" class="pill" title="Spracheingabe starten/stoppen">🎙️</button>
   </div>
   <div class="flags" aria-label="Sprachauswahl">
     <img id="flag-fr" class="flag" alt="FR" title="Französisch als Hauptsprache" />
@@ -217,9 +218,10 @@
           <span class="cat" title="Kategorie">${escapeHtml(item.category)}</span>
           <span class="cat" title="Paket">${escapeHtml(item.pack.split('/').pop())}</span>
         </div>
-        <div class="txt-main">${escapeHtml(item[state.primary] || '')}</div>
-        <div class="txt-sub">${escapeHtml(item[state.secondary] || '')}</div>
-        <div class="txt-de">${escapeHtml(item.de || '')}${item.hint ? ' · <em>Hint: ' + escapeHtml(item.hint) + '</em>' : ''}</div>
+        <div class=\"txt-main\">${escapeHtml(item[state.primary] || '')}</div>
+        <div class=\"txt-sub\">${escapeHtml(item[state.secondary] || '')}</div>
+        <div class=\"txt-de\">${escapeHtml(item.de || '')}${item.hint ? ' · <em>Hint: ' + escapeHtml(item.hint) + '</em>' : ''}</div>
+        <div class=\"row\" style=\"justify-content:flex-end\"><button class=\"pill say\" data-text=\"${escapeAttr(item[state.primary] || '')}\" data-lang=\"${state.primary}\">🔊 Abspielen</button></div>
       `;
       frag.appendChild(card);
     }
@@ -247,8 +249,15 @@
     const loadVoices = () => { state.tts.voices = window.speechSynthesis.getVoices(); state.tts.ready = true; };
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
-    // Event delegation: click on a card speaks the primary text when Auto‑TTS is ON
+    // Auto‑TTS & Button in Karten
     $('#results').addEventListener('click', (e)=>{
+      const btn = e.target.closest('.say');
+      if(btn){
+        const text = btn.getAttribute('data-text') || '';
+        const langCode = btn.getAttribute('data-lang') === 'nl' ? 'nl-NL' : 'fr-FR';
+        speak(text, langCode);
+        return;
+      }
       const card = e.target.closest('.card');
       if(!card) return;
       if(!state.tts.enabled) return;
@@ -257,6 +266,22 @@
       const lang = state.primary === 'nl' ? 'nl-NL' : 'fr-FR';
       speak(text, lang);
     });
+
+    // Mikrofon: Spracheingabe in die Suche
+    const hasRec = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    if(hasRec){
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new SR();
+      rec.lang = 'de-DE';
+      rec.interimResults = false; rec.continuous = false;
+      let active = false;
+      const mic = $('#mic');
+      const setMic = (on)=>{ active=on; mic.textContent = on ? '🛑' : '🎙️'; mic.setAttribute('aria-pressed', on); };
+      mic.addEventListener('click', ()=>{ if(active){ rec.stop(); } else { setMic(true); rec.start(); } });
+      rec.onresult = (e)=>{ const t = Array.from(e.results).map(r=>r[0].transcript).join(' '); $('#q').value = t; state.q = t.toLowerCase(); render(); };
+      rec.onerror = ()=> setMic(false);
+      rec.onend = ()=> setMic(false);
+    }
   }
 
   function updateTtsToggle(){
