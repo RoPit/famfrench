@@ -16,7 +16,7 @@
     .search{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:10px 12px}
     .search input{flex:1;background:transparent;border:0;outline:none;color:var(--fg);font-size:16px}
     .filters{display:flex;gap:8px;flex-wrap:wrap}
-    select,button{background:var(--chip);color:var(--fg);border:1px solid var(--ring);border-radius:14px;padding:10px 12px;font-size:14px}
+    select,button{background:var(--chip);color:var(--fg);border:1px solid var(--ring);border-radius:14px;padding:10px 12px;font-size:14px;cursor:pointer}
     button[aria-pressed="true"]{outline:2px solid var(--accent)}
     .flags{display:flex;gap:8px}
     .flag{width:34px;height:24px;border-radius:6px;border:1px solid var(--ring);cursor:pointer;opacity:.75}
@@ -24,7 +24,6 @@
     .grid{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0 36px}
     @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
     .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:14px 14px}
-    .card button.say{margin-top:8px}
     .cat{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--ring);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
     .row{display:flex;gap:10px;align-items:flex-start}
     .txt-main{font-size:18px;margin:6px 0 2px;font-weight:700}
@@ -43,7 +42,7 @@
     </header><div class="bar">
   <div class="search" role="search">
     <input id="q" type="search" placeholder="Suche (FR/NL/DE)…" autocomplete="off" />
-    <button id="mic" class="pill" title="Spracheingabe starten/stoppen">🎙️</button>
+    <button id="mic" class="pill" title="Spracheingabe starten/stoppen">Mikrofon</button>
   </div>
   <div class="flags" aria-label="Sprachauswahl">
     <img id="flag-fr" class="flag" alt="FR" title="Französisch als Hauptsprache" />
@@ -58,7 +57,7 @@
   <button id="show-today" class="pill" aria-pressed="false">Heute</button>
   <button id="show-all" class="pill" aria-pressed="true">Alle</button>
   <button id="show-packs" class="pill" aria-pressed="false">Packs</button>
-  <button id="tts-toggle" class="pill" aria-pressed="false" title="Vorlesen beim Antippen aktivieren/deaktivieren">🔊 Auto‑TTS: Aus</button>
+  <button id="tts-toggle" class="pill" aria-pressed="false" title="Vorlesen beim Antippen aktivieren/deaktivieren">Auto‑TTS: Aus</button>
 </div>
 
 <div id="results" class="grid" aria-live="polite"></div>
@@ -145,7 +144,6 @@
   // ---- Data loading
   async function loadAll(){
     try{
-      // Manifest schema: { packs: ["data/greetings_plus1.json", ...], optional todayPacks, optional categoryNames map }
       const manifest = await fetchJson('data/manifest.json');
       const packs = Array.isArray(manifest.packs) ? manifest.packs : [];
       state.todaySet = new Set(Array.isArray(manifest.todayPacks) ? manifest.todayPacks : []);
@@ -156,14 +154,12 @@
       state.categories = new Set();
 
       for(const {path, raw} of results){
-        // Accept both array and object with { name, phrases: [...] }
         const rows = Array.isArray(raw) ? raw : (Array.isArray(raw?.phrases) ? raw.phrases : []);
         const category = (manifest.categoryNames && manifest.categoryNames[path]) || (raw && raw.name) || guessCategory(path);
         state.categories.add(category);
 
         if(Array.isArray(rows)){
           rows.forEach((row, idx)=>{
-            // Normalise keys: fr/nl/de (fallback to en for de). Optional hint and date.
             const fr = row.fr ?? '';
             const nl = row.nl ?? '';
             const de = (row.de ?? row.en ?? '');
@@ -214,14 +210,19 @@
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
-        <div class="row" style="justify-content:space-between">
-          <span class="cat" title="Kategorie">${escapeHtml(item.category)}</span>
-          <span class="cat" title="Paket">${escapeHtml(item.pack.split('/').pop())}</span>
+        <div class=\"row\" style=\"justify-content:space-between\"> 
+          <span class=\"cat\" title=\"Kategorie\">${escapeHtml(item.category)}</span>
+          <span class=\"cat\" title=\"Paket\">${escapeHtml(item.pack.split('/').pop())}</span>
         </div>
         <div class=\"txt-main\">${escapeHtml(item[state.primary] || '')}</div>
         <div class=\"txt-sub\">${escapeHtml(item[state.secondary] || '')}</div>
         <div class=\"txt-de\">${escapeHtml(item.de || '')}${item.hint ? ' · <em>Hint: ' + escapeHtml(item.hint) + '</em>' : ''}</div>
-        <div class=\"row\" style=\"justify-content:flex-end\"><button class=\"pill say\" data-text=\"${escapeAttr(item[state.primary] || '')}\" data-lang=\"${state.primary}\">🔊 Abspielen</button></div>
+        <div class=\"row\" style=\"justify-content:flex-end;gap:8px;flex-wrap:wrap\">
+          <button class=\"pill say\" data-mode=\"normal\" data-text=\"${escapeAttr(item[state.primary] || '')}\" data-lang=\"${state.primary}\">Abspielen</button>
+          <button class=\"pill say\" data-mode=\"slow\" data-text=\"${escapeAttr(item[state.primary] || '')}\" data-lang=\"${state.primary}\">Langsam</button>
+          <button class=\"pill rec\" data-text=\"${escapeAttr(item[state.primary] || '')}\" data-lang=\"${state.primary}\">Aufnehmen</button>
+          <span class=\"cat score\" aria-live=\"polite\"></span>
+        </div>
       `;
       frag.appendChild(card);
     }
@@ -229,10 +230,9 @@
   }
 
   function escapeHtml(s){
-    return String(s).replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+    return String(s).replace(/[&<>\"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]));
   }
   
-  // attribute-safe
   function escapeAttr(s){
     return escapeHtml(s).replace(/`/g,'&#96;');
   }
@@ -243,19 +243,17 @@
     console.error(err);
   }
 
-  // ---- TTS (Web Speech API)
   function initTTS(){
     if(!('speechSynthesis' in window)) return;
     const loadVoices = () => { state.tts.voices = window.speechSynthesis.getVoices(); state.tts.ready = true; };
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
-    // Auto‑TTS & Button in Karten
     $('#results').addEventListener('click', (e)=>{
       const btn = e.target.closest('.say');
       if(btn){
         const text = btn.getAttribute('data-text') || '';
         const langCode = btn.getAttribute('data-lang') === 'nl' ? 'nl-NL' : 'fr-FR';
-        speak(text, langCode);
+        speak(text, langCode, btn.getAttribute('data-mode'));
         return;
       }
       const card = e.target.closest('.card');
@@ -266,47 +264,7 @@
       const lang = state.primary === 'nl' ? 'nl-NL' : 'fr-FR';
       speak(text, lang);
     });
-
-    // Mikrofon: Spracheingabe in die Suche
-    const hasRec = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-    if(hasRec){
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const rec = new SR();
-      rec.lang = 'de-DE';
-      rec.interimResults = false; rec.continuous = false;
-      let active = false;
-      const mic = $('#mic');
-      const setMic = (on)=>{ active=on; mic.textContent = on ? '🛑' : '🎙️'; mic.setAttribute('aria-pressed', on); };
-      mic.addEventListener('click', ()=>{ if(active){ rec.stop(); } else { setMic(true); rec.start(); } });
-      rec.onresult = (e)=>{ const t = Array.from(e.results).map(r=>r[0].transcript).join(' '); $('#q').value = t; state.q = t.toLowerCase(); render(); };
-      rec.onerror = ()=> setMic(false);
-      rec.onend = ()=> setMic(false);
-    }
   }
 
   function updateTtsToggle(){
     const b = $('#tts-toggle');
-    b.setAttribute('aria-pressed', state.tts.enabled);
-    b.textContent = state.tts.enabled ? '🔊 Auto‑TTS: An' : '🔊 Auto‑TTS: Aus';
-  }
-
-  function speak(text, lang){
-    if(!text) return;
-    try{
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang;
-      const v = state.tts.voices.find(v=>v.lang && v.lang.startsWith(lang.slice(0,2)));
-      if(v) u.voice = v;
-      window.speechSynthesis.speak(u);
-    }catch{ /* ignore */ }
-  }
-
-  // ---- Init
-  setLang('fr','nl');
-  initTTS();
-  updateTtsToggle();
-  loadAll();
-})();
-</script></body>
-</html>
