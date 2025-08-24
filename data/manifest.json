@@ -15,6 +15,10 @@
     "data/work_plus1.json",
     "data/work_plus2.json"
   ],
+  "todayPacks": [
+    "data/greetings_plus2.json",
+    "data/greetings_nl_plus2.json"
+  ],
   "categoryNames": {
     "data/family_plus1.json": "family_plus1",
     "data/family_plus2.json": "family_plus2",
