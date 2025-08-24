@@ -1,0 +1,17 @@
+{
+  "name": "Begrüßungen & Alltag (Plus 1)",
+  "phrases": [
+    {"fr":"Salut tout le monde !","en":"Hi everyone!","hint":"sa-LOO toul mönd"},
+    {"fr":"Yo !","en":"Yo!","hint":"jo"},
+    {"fr":"Ça roule ?","en":"Alles gut?","hint":"sa RUL"},
+    {"fr":"Quoi de neuf ?","en":"Was gibt’s Neues?","hint":"kwa dö nöf"},
+    {"fr":"Tu fais quoi ?","en":"Was machst du?","hint":"tü fe kwa"},
+    {"fr":"Ça me fait plaisir de te voir.","en":"Freut mich, dich zu sehen.","hint":"sa mö fä plä-zir dö tö vwar"},
+    {"fr":"Bienvenue !","en":"Willkommen!","hint":"byan-vö-nü"},
+    {"fr":"Bon après-midi !","en":"Schönen Nachmittag!","hint":"bon nap-reh-mi-di"},
+    {"fr":"À tout à l’heure !","en":"Bis gleich!","hint":"a tut a löhr"},
+    {"fr":"À tout de suite !","en":"Bis sofort!","hint":"a tud süit"},
+    {"fr":"À plus tard !","en":"Bis später!","hint":"a plu tar"},
+    {"fr":"Prends soin de toi, hein.","en":"Pass gut auf dich auf, ja?","hint":"pron swän dö twa, äN"}
+  ]
+}
