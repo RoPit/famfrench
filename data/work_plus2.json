@@ -1,0 +1,17 @@
+{
+  "name": "Arbeit & Absprachen (Plus 2)",
+  "phrases": [
+    {"fr":"Tu peux envoyer ça ?","en":"Kannst du das schicken?","hint":"tü pö on-vwaje sa"},
+    {"fr":"On vérifie ensemble.","en":"Wir prüfen das zusammen.","hint":"on ve-ri-fi on-sombl"},
+    {"fr":"Ça te va comme ça ?","en":"Passt das so?","hint":"sa tö va kom sa"},
+    {"fr":"On se fait un point demain.","en":"Kurzes Update morgen?","hint":"on sö fe äN pwäng dö-mäng"},
+    {"fr":"Pas de pression.","en":"Kein Stress.","hint":"pa dö press-jõ"},
+    {"fr":"Bonne idée.","en":"Gute Idee.","hint":"bon i-de"},
+    {"fr":"On garde ça simple.","en":"Wir halten’s simpel.","hint":"on gard sa sampl"},
+    {"fr":"On avance petit à petit.","en":"Schritt für Schritt.","hint":"on a-vons pö-ti ta pö-ti"},
+    {"fr":"Tu me dis si besoin.","en":"Sag Bescheid, falls nötig.","hint":"tü mö di si bö-swän"},
+    {"fr":"On clôture ça aujourd’hui.","en":"Lass uns das heute abschließen.","hint":"on klo-tür sa o-zhoor-dwi"},
+    {"fr":"Impec, on continue.","en":"Top, wir machen weiter.","hint":"am-pek, on kon-ti-nü"},
+    {"fr":"Merci pour ton aide.","en":"Danke für deine Hilfe.","hint":"mehr-si pur ton äd"}
+  ]
+}
