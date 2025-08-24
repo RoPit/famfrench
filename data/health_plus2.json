@@ -1,0 +1,17 @@
+{
+  "name": "Gesundheit & Wohlbefinden (Plus 2)",
+  "phrases": [
+    {"fr":"Tu te sens comment aujourd’hui ?","en":"Wie fühlst du dich heute?","hint":"tü tö son ko-mon o-zhoor-dwi"},
+    {"fr":"Tu as besoin d’air ?","en":"Brauchst du frische Luft?","hint":"tü a bö-swän där"},
+    {"fr":"Je te ramène quelque chose.","en":"Ich bring dir was mit.","hint":"zhö tö ra-men kelk schöz"},
+    {"fr":"Tu as froid / chaud ?","en":"Ist dir kalt / warm?","hint":"tü a frwa / scho"},
+    {"fr":"Ça va passer.","en":"Das geht vorbei.","hint":"sa va pa-se"},
+    {"fr":"Si ça ne va pas, tu me dis.","en":"Sag mir Bescheid, wenn’s nicht geht.","hint":"si sa nö va pa, tü mö di"},
+    {"fr":"Je reste avec toi.","en":"Ich bleibe bei dir.","hint":"zhö rest a-vek twa"},
+    {"fr":"On annule si tu veux.","en":"Wir sagen ab, wenn du willst.","hint":"on a-nül si tü vö"},
+    {"fr":"Tu veux un plaid ?","en":"Willst du eine Decke?","hint":"tü vö aN pläd"},
+    {"fr":"Je te prépare une tisane.","en":"Ich mach dir einen Tee.","hint":"zhö tö prä-par ün ti-san"},
+    {"fr":"Courage, je suis là.","en":"Kopf hoch, ich bin da.","hint":"ku-razh, zhö swi la"},
+    {"fr":"Appelle-moi si besoin.","en":"Ruf mich an, wenn was ist.","hint":"a-pell mwa si bö-swän"}
+  ]
+}
