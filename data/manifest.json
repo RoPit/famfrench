@@ -1,18 +1,34 @@
 {
-  "files": [
-    "family_plus1.json",
-    "family_plus2.json",
-    "food.json",
-    "food_plus1.json",
-    "food_plus2.json",
-    "greetings_nl_plus1.json",
-    "greetings_nl_plus2.json",
-    "greetings_plus1.json",
-    "greetings_plus2.json",
-    "health_plus1.json",
-    "health_plus2.json",
-    "visits.json",
-    "work_plus1.json",
-    "work_plus2.json"
-  ]
+  "packs": [
+    "data/family_plus1.json",
+    "data/family_plus2.json",
+    "data/food.json",
+    "data/food_plus1.json",
+    "data/food_plus2.json",
+    "data/greetings_nl_plus1.json",
+    "data/greetings_nl_plus2.json",
+    "data/greetings_plus1.json",
+    "data/greetings_plus2.json",
+    "data/health_plus1.json",
+    "data/health_plus2.json",
+    "data/visits.json",
+    "data/work_plus1.json",
+    "data/work_plus2.json"
+  ],
+  "categoryNames": {
+    "data/family_plus1.json": "family_plus1",
+    "data/family_plus2.json": "family_plus2",
+    "data/food.json": "food",
+    "data/food_plus1.json": "food_plus1",
+    "data/food_plus2.json": "food_plus2",
+    "data/greetings_nl_plus1.json": "greetings_nl_plus1",
+    "data/greetings_nl_plus2.json": "greetings_nl_plus2",
+    "data/greetings_plus1.json": "greetings_plus1",
+    "data/greetings_plus2.json": "greetings_plus2",
+    "data/health_plus1.json": "health_plus1",
+    "data/health_plus2.json": "health_plus2",
+    "data/visits.json": "visits",
+    "data/work_plus1.json": "work_plus1",
+    "data/work_plus2.json": "work_plus2"
+  }
 }
