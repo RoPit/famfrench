@@ -3,10 +3,14 @@
     "family_plus1.json",
     "family_plus2.json",
     "food.json",
+    "food_plus1.json",
+    "food_plus2.json",
     "greetings_plus1.json",
     "greetings_plus2.json",
     "health_plus1.json",
     "health_plus2.json",
-    "visits.json"
+    "visits.json",
+    "work_plus1.json",
+    "work_plus2.json"
   ]
 }
