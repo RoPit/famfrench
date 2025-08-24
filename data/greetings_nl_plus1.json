@@ -1,0 +1,13 @@
+{
+  "name": "Groeten & Dagelijks",
+  "phrases": [
+    { "nl": "Hoi!", "en": "Hi!", "hint": "hoi" },
+    { "nl": "Dag!", "en": "Hallo!", "hint": "dach" },
+    { "nl": "Alles goed?", "en": "Alles klar?", "hint": "alles chuut" },
+    { "nl": "Hoe gaat het?", "en": "Wie geht's?", "hint": "hu ghaat hüt" },
+    { "nl": "Tot straks!", "en": "Bis später!", "hint": "tot strakss" },
+    { "nl": "Tot morgen!", "en": "Bis morgen!", "hint": "tot morghen" },
+    { "nl": "Welterusten!", "en": "Gute Nacht!", "hint": "wel-te-rus-ten" },
+    { "nl": "Fijne dag!", "en": "Schönen Tag!", "hint": "fäi-ne dach" }
+  ]
+}
