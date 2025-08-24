@@ -1,0 +1,17 @@
+{
+  "name": "Essen & Trinken (Plus 2)",
+  "phrases": [
+    {"fr":"On fait un barbecue ?","en":"Grillen wir?","hint":"on fe äN bar-bö-kü"},
+    {"fr":"Qui s’occupe du dessert ?","en":"Wer macht den Nachtisch?","hint":"ki so-küp dü deh-sär"},
+    {"fr":"Tu prends du pain ?","en":"Holst du Brot?","hint":"tü pron dü päng"},
+    {"fr":"On partage ?","en":"Teilen wir?","hint":"on par-tazh"},
+    {"fr":"Sans alcool pour moi.","en":"Für mich ohne Alkohol.","hint":"sohn zal-kol pur mwa"},
+    {"fr":"À ta santé !","en":"Zum Wohl!","hint":"a ta son-te"},
+    {"fr":"On trinque ?","en":"Stoßen wir an?","hint":"on tränk"},
+    {"fr":"Qui fait la vaisselle ?","en":"Wer spült ab?","hint":"ki fe la wä-sell"},
+    {"fr":"Je m’occupe des verres.","en":"Ich kümmere mich um die Gläser.","hint":"zhö mo-küp de ver"},
+    {"fr":"On commande indien/chinois ?","en":"Bestellen wir Indisch/Chinesisch?","hint":"on ko-mond äng-djäng/shi-nwa"},
+    {"fr":"Tu as une allergie ?","en":"Hast du eine Allergie?","hint":"tü a ün a-ler-zhi"},
+    {"fr":"Bon appétit tout le monde !","en":"Guten Appetit, alle zusammen!","hint":"bon a-pe-ti tul mönd"}
+  ]
+}
