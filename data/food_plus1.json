@@ -1,0 +1,17 @@
+{
+  "name": "Essen & Trinken (Plus 1)",
+  "phrases": [
+    {"fr":"On cuisine ensemble ?","en":"Kochen wir zusammen?","hint":"on kü-zin on-sombl"},
+    {"fr":"Qui met la table ?","en":"Wer deckt den Tisch?","hint":"ki me la tabl"},
+    {"fr":"Je coupe le pain.","en":"Ich schneide das Brot.","hint":"zhö kup lö päng"},
+    {"fr":"Tu veux une part ?","en":"Willst du ein Stück?","hint":"tü vö ün par"},
+    {"fr":"Tu veux goûter ?","en":"Willst du probieren?","hint":"tü vö gu-te"},
+    {"fr":"C’est trop bon !","en":"So lecker!","hint":"seh tro bon"},
+    {"fr":"Encore un peu de sauce ?","en":"Noch etwas Soße?","hint":"on-kor ün pö dö sos"},
+    {"fr":"Qui veut du fromage ?","en":"Wer will Käse?","hint":"ki vö dü fro-mazh"},
+    {"fr":"Je fais du café pour tout le monde.","en":"Ich mach Kaffee für alle.","hint":"zhö fe dü ka-fe pur tul mönd"},
+    {"fr":"On garde les restes.","en":"Wir heben Reste auf.","hint":"on gard le rest"},
+    {"fr":"Tu emportes un Tupper ?","en":"Nimmst du was mit?","hint":"tü on-port ün tüper"},
+    {"fr":"Je fais la liste des courses.","en":"Ich mach die Einkaufsliste.","hint":"zhö fe la list de kurss"}
+  ]
+}
