@@ -1,43 +1,49 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FamFrench – Mega Packs</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FamLang – FR ⇄ NL</title>
 <style>
-  :root { --bg:#0b0b10; --card:#16161e; --text:#eaeaf2; --muted:#a8adbd; --accent:#7cc5ff; }
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  :root{--bg:#0b0b10;--card:#16161e;--text:#eaeaf2;--muted:#a8adbd;--accent:#7cc5ff}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
   .wrap{max-width:980px;margin:0 auto;padding:16px}
-  .title{font-weight:800;font-size:1.6rem;text-align:center;margin:10px 0 16px}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0 14px}
-  input[type=search]{flex:1 1 280px;min-width:240px;background:#1d1d28;border:1px solid #2a2a38;color:#e6e6f2;border-radius:10px;padding:10px}
-  select{background:#1d1d28;border:1px solid #2a2a38;color:#e6e6f2;border-radius:10px;padding:10px}
+  .title{font-weight:800;font-size:1.6rem;text-align:center;margin:10px 0 6px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0 14px}
+  input[type=search],select{background:#1d1d28;border:1px solid #2a2a38;color:#e6e6f2;border-radius:10px;padding:10px}
+  input[type=search]{flex:1 1 280px;min-width:240px}
   .tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
   .tab{padding:10px 14px;border-radius:999px;background:#1e1e28;color:#cfd3e6;border:1px solid #2a2a36;cursor:pointer}
   .tab.active{background:var(--accent);color:#001b2a;border-color:transparent}
   .card{background:var(--card);border:1px solid #262634;border-radius:14px;padding:14px;margin:10px 0}
   .lesson{font-size:1.05rem;font-weight:700;margin-bottom:6px}
+  .divider{height:1px;background:#262634;margin:10px 0}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
   .fr{font-weight:700;font-size:1.1rem}
   .en{color:#b7bdd0}
   .hint{color:#9aa3b7;font-size:.9rem}
+  .muted{color:var(--muted)}
   button{background:#242434;border:1px solid #343446;color:#dfe3f9;padding:8px 12px;border-radius:12px;cursor:pointer}
   button.tonal{background:#1d2a3a;border-color:#29455e}
   button.primary{background:var(--accent);color:#001b2a;border-color:transparent}
-  .divider{height:1px;background:#262634;margin:10px 0}
   .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#283141;color:#a6ceff;border:1px solid #3a4960;font-size:.8rem;margin-left:6px}
-  .muted{color:var(--muted)}
+  .lang-toggle{display:flex;gap:6px}
+  .lang-toggle button{font-size:1.4rem;background:none;border:2px solid transparent;border-radius:8px;cursor:pointer;padding:2px 6px}
+  .lang-toggle button.active{border-color:var(--accent);background:#1d1d28}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="title">FamFrench – Lockeres Französisch und Niederländisch</div>
+  <div class="title">FamLang – informell, familiär (FR ⇄ NL)</div>
+  <div class="muted" style="text-align:center;margin-bottom:6px;">Klicke 🇫🇷 oder 🇳🇱 oben – die App zeigt & spricht die gewählte Sprache.</div>
 
   <div class="toolbar">
-    <input id="q" type="search" placeholder="Suche (fr/de) …">
-    <select id="cat">
-      <option value="">Alle Kategorien</option>
-    </select>
+    <input id="q" type="search" placeholder="Suche (FR/NL/DE) …" />
+    <select id="cat"><option value="">Alle Kategorien</option></select>
+    <div id="langToggle" class="lang-toggle">
+      <button data-lang="fr" title="Französisch">🇫🇷</button>
+      <button data-lang="nl" title="Niederländisch">🇳🇱</button>
+    </div>
   </div>
 
   <div class="tabs">
@@ -50,169 +56,103 @@
 </div>
 
 <script>
-// ---------- Data loading (manifest-driven) ----------
+// ---------------- manifest-driven loading ----------------
 const MANIFEST_URL = 'data/manifest.json?v=' + Date.now();
-let CONTENT = []; // {name, phrases:[{fr,en,hint,who?}]}
+let CONTENT = [];       
+let allPhrases = [];    
+let selectedTab = 'today';
+let currentLang = 'nl'; // default
+const LANG_TO_TTS = { fr:'fr-FR', nl:'nl-NL' };
+const voicesCache = { fr:null, nl:null };
 
-(async function loadAll(){
-  try {
-    const manifest = await (await fetch(MANIFEST_URL)).json(); // ["greetings.json", ...]
-    const files = manifest.files || manifest; // support {files:[...]} or [...]
+(async function(){
+  try{
+    const manifest = await (await fetch(MANIFEST_URL)).json();
+    const files = manifest.files || manifest;
     const loaded = await Promise.all(files.map(f => fetch('data/'+f+'?v='+Date.now()).then(r=>r.json())));
-    CONTENT = loaded; // array of lessons/packs
+    CONTENT = loaded;
     initUI();
-  } catch(e){
-    document.getElementById('screen').innerHTML = '<div class="card">Konnte Inhalte nicht laden. Prüfe <code>/data/manifest.json</code>.</div>';
+  }catch(e){
+    document.getElementById('screen').innerHTML =
+      '<div class="card">Konnte Inhalte nicht laden. Prüfe <code>/data/manifest.json</code>.</div>';
   }
 })();
 
-// ---------- UI state ----------
-let allPhrases = [];
-let selectedTab = 'today';
-let categories = [];
-
 function initUI(){
-  // flatten
-  allPhrases = CONTENT.flatMap(l => l.phrases.map(p => ({...p, __cat: l.name})));
-  categories = ['Alle Kategorien', ...CONTENT.map(l=>l.name)];
-  // fill category select
+  allPhrases = CONTENT.flatMap(l => (l.phrases||[]).map(p => ({...p, __cat:l.name})));
   const catSel = document.getElementById('cat');
   CONTENT.forEach(l => {
-    const opt = document.createElement('option');
-    opt.value = l.name; opt.textContent = l.name;
-    catSel.appendChild(opt);
+    const opt = document.createElement('option'); opt.value=l.name; opt.textContent=l.name; catSel.appendChild(opt);
   });
   catSel.onchange = render;
 
-  // Tabs
-  document.querySelectorAll('.tab').forEach(t=>{
-    t.onclick = ()=> {
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      selectedTab = t.dataset.tab;
-      render();
+  // Flag toggle
+  document.querySelectorAll('#langToggle button').forEach(btn=>{
+    btn.onclick=()=>{
+      currentLang = btn.dataset.lang; pickVoices(); render();
+      document.querySelectorAll('#langToggle button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
     };
   });
+  document.querySelector(`#langToggle button[data-lang="${currentLang}"]`).classList.add('active');
 
-  // Search
-  document.getElementById('q').oninput = debounce(render, 150);
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active'); selectedTab=t.dataset.tab; render();
+    };
+  });
+  document.getElementById('q').oninput = debounce(render,150);
 
+  pickVoices();
   render();
 }
 
 function render(){
-  const scr = document.getElementById('screen');
-  const q = (document.getElementById('q').value||'').trim().toLowerCase();
-  const cat = document.getElementById('cat').value||'';
-
+  const scr=document.getElementById('screen');
+  const q=(document.getElementById('q').value||'').trim().toLowerCase();
+  const cat=document.getElementById('cat').value||'';
   if(selectedTab==='today'){
-    const sample = shuffle(filterPhrases(allPhrases, q, cat)).slice(0, 12);
-    scr.innerHTML = '<div class="card"><div class="lesson">Heute (12 Karten)</div>' + sample.map(phraseCard).join('') + '</div>';
-    attachHandlers();
-    return;
+    const sample=shuffle(filterPhrases(allPhrases,q,cat)).slice(0,12);
+    scr.innerHTML='<div class="card"><div class="lesson">Heute (12 Karten)</div>'+sample.map(phraseCard).join('')+'</div>';
+    attachHandlers(); return;
   }
   if(selectedTab==='all'){
-    const list = filterPhrases(allPhrases, q, cat);
-    scr.innerHTML = '<div class="card"><div class="lesson">Alle Phrasen <span class="pill">'+list.length+' Einträge</span></div>' + list.map(phraseCard).join('') + '</div>';
-    attachHandlers();
-    return;
+    const list=filterPhrases(allPhrases,q,cat);
+    scr.innerHTML='<div class="card"><div class="lesson">Alle Phrasen <span class="pill">'+list.length+'</span></div>'+list.map(phraseCard).join('')+'</div>';
+    attachHandlers(); return;
   }
   if(selectedTab==='packs'){
-    // group by category
-    const grouped = {};
+    const grouped={};
     CONTENT.forEach(l=>{
-      const filtered = filterPhrases(l.phrases.map(p=>({...p, __cat:l.name})), q, cat);
-      if(filtered.length) grouped[l.name] = filtered;
+      const filtered=filterPhrases((l.phrases||[]).map(p=>({...p,__cat:l.name})), q, cat);
+      if(filtered.length) grouped[l.name]=filtered;
     });
-    scr.innerHTML = Object.keys(grouped).map(name=>{
-      return `<div class="card"><div class="lesson">${name} <span class="pill">${grouped[name].length}</span></div>${grouped[name].map(phraseCard).join('')}</div>`;
-    }).join('') || '<div class="card">Keine Treffer.</div>';
-    attachHandlers();
-    return;
+    scr.innerHTML=Object.keys(grouped).map(name=>
+      `<div class="card"><div class="lesson">${name} <span class="pill">${grouped[name].length}</span></div>${grouped[name].map(phraseCard).join('')}</div>`
+    ).join('')||'<div class="card">Keine Treffer.</div>';
+    attachHandlers(); return;
   }
 }
 
-function filterPhrases(list, q, cat){
-  return list.filter(p=>{
-    const matchesCat = !cat || p.__cat===cat || p.name===cat;
-    if(!q) return matchesCat;
-    const txt = [p.fr, p.en, p.hint, p.__cat].join(' ').toLowerCase();
-    return matchesCat && txt.includes(q);
-  });
-}
-
-// ---------- Components ----------
 function phraseCard(p){
-  const id = Math.random().toString(36).slice(2);
+  const id=Math.random().toString(36).slice(2);
+  const txt=getText(p);
   return `<div class="divider"></div>
-    <div class="fr">${p.fr}</div>
-    <div class="en">${p.en}</div>
-    <div class="hint">Aussprache: ${p.hint} <span class="pill">${p.__cat||''}</span></div>
+    <div class="fr">${escapeHtml(txt)}</div>
+    <div class="en">${p.en?escapeHtml(p.en):''}</div>
+    <div class="hint">Aussprache: ${p.hint||''} <span class="pill">${p.__cat||''}</span></div>
     <div class="row">
-      <button class="play" data-id="${id}" data-text="${escapeHtml(p.fr)}" data-rate="1">▶︎ Abspielen</button>
-      <button class="play tonal" data-id="${id}" data-text="${escapeHtml(p.fr)}" data-rate="0.7">⏵ Langsam</button>
-      <button class="primary speak" data-id="${id}" data-text="${escapeHtml(p.fr)}">🎤 Nachsprechen</button>
+      <button class="play" data-id="${id}" data-text="${escapeHtml(txt)}" data-rate="1">▶︎ Abspielen</button>
+      <button class="play tonal" data-id="${id}" data-text="${escapeHtml(txt)}" data-rate="0.7">⏵ Langsam</button>
+      <button class="primary speak" data-id="${id}" data-text="${escapeHtml(txt)}">🎤 Nachsprechen</button>
     </div>
     <div class="row"><span class="muted">Erkannt:</span> <span id="rec-${id}" class="muted"></span></div>
     <div class="row"><span class="muted">Treffer:</span> <span id="sc-${id}" class="muted">–</span></div>`;
 }
 
-function attachHandlers(){
-  document.querySelectorAll('button.play').forEach(b=>{
-    b.onclick=()=>{
-      speak(b.dataset.text, parseFloat(b.dataset.rate||'1'));
-    };
-  });
-  document.querySelectorAll('button.speak').forEach(b=>{
-    b.onclick=()=>{
-      recordOnce(b.dataset.text, (rec,score,label,id)=>{
-        const rid = 'rec-'+b.dataset.id, sid='sc-'+b.dataset.id;
-        document.getElementById(rid).textContent = `"${rec}"`;
-        document.getElementById(sid).textContent = `${score}% – ${label}`;
-      }, b.dataset.id);
-    };
-  });
-}
+function getText(p){return p[currentLang]||p.fr||p.nl||'';}
+function allTextForSearch(p){return [p.fr||'',p.nl||'',p.en||'',p.hint||'',p.__cat||''].join(' ').toLowerCase();}
+function filterPhrases(list,q,cat){return list.filter(p=>{const ok=!cat||p.__cat===cat||p.name===cat;if(!q)return ok;return ok&&allTextForSearch(p).includes(q.toLowerCase());});}
 
-// ---------- Speech (TTS/STT) ----------
-let frVoice=null;
-function initVoices(){ frVoice = speechSynthesis.getVoices().find(v=>/fr/i.test(v.lang))||null; }
-speechSynthesis.onvoiceschanged = initVoices; initVoices();
-
-function speak(text, rate=1.0){
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang='fr-FR'; if(frVoice) u.voice=frVoice; u.rate=rate;
-  speechSynthesis.cancel(); speechSynthesis.speak(u);
-}
-
-function recordOnce(target, cb, id){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ alert('Spracherkennung nicht verfügbar (Browser).'); return; }
-  const r = new SR(); r.lang='fr-FR'; r.interimResults=false; r.maxAlternatives=1;
-  r.onresult = (e)=>{
-    const rec = e.results?.[0]?.[0]?.transcript || '';
-    const s = Math.round(similarity(target, rec)*100);
-    const label = s>=85?'Super':s>=70?'Gut':'Nochmal';
-    cb(rec, s, label, id);
-  };
-  r.start();
-}
-
-// ---------- Helpers ----------
-function shuffle(a){ return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]); }
-function debounce(fn,ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args),ms); }; }
-function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-function norm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Zœçàâäéèêëîïôöùûü\s]/g,'').replace(/\s+/g,' ').trim(); }
-function lev(a,b){
-  const A=norm(a), B=norm(b), dp=Array(A.length+1).fill(0).map(()=>Array(B.length+1).fill(0));
-  for(let i=0;i<=A.length;i++) dp[i][0]=i; for(let j=0;j<=B.length;j++) dp[0][j]=j;
-  for(let i=1;i<=A.length;i++) for(let j=1;j<=B.length;j++){
-    const c = A[i-1]===B[j-1]?0:1; dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c);
-  }
-  return dp[A.length][B.length];
-}
-function similarity(a,b){ const A=norm(a), B=norm(b); if(!A&&!B) return 1; const d=lev(A,B); return 1 - d/Math.max(A.length,B.length); }
-</script>
-</body>
-</html>
+function pickVoices(){const all=speechSynthesis.getVoices();voicesCache.fr=all.find(v=>/fr/i.test(v.lang))||null;voicesCache.nl=all.find
