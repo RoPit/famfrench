@@ -138,25 +138,34 @@
   // ---- Data loading
   async function loadAll(){
     try{
-      // Manifest schema: { packs: ["data/greetings_plus1.json", ...] }
+      // Manifest schema: { packs: ["data/greetings_plus1.json", ...], optional categoryNames map }
       const manifest = await fetchJson('data/manifest.json');
       const packs = Array.isArray(manifest.packs) ? manifest.packs : [];
-      const results = await Promise.all(packs.map(async p => ({ path:p, rows: await fetchJson(p) })));
+      const results = await Promise.all(packs.map(async p => ({ path:p, raw: await fetchJson(p) })));
 
       state.items = [];
       state.categories = new Set();
 
-      for(const {path, rows} of results){
-        const category = (manifest.categoryNames && manifest.categoryNames[path]) || guessCategory(path);
+      for(const {path, raw} of results){
+        // Accept both array and object with { name, phrases: [...] }
+        const rows = Array.isArray(raw) ? raw : (Array.isArray(raw?.phrases) ? raw.phrases : []);
+        const category = (manifest.categoryNames && manifest.categoryNames[path]) || (raw && raw.name) || guessCategory(path);
         state.categories.add(category);
+
         if(Array.isArray(rows)){
           rows.forEach((row, idx)=>{
+            // Normalise keys: support fr/nl/de; if de missing, use en as German; keep hint
+            const fr = row.fr ?? '';
+            const nl = row.nl ?? '';
+            const de = (row.de ?? row.en ?? '');
+            const hint = row.hint ?? '';
             state.items.push({
               id: `${path}#${idx}`,
               category,
-              fr: String(row.fr ?? ''),
-              nl: String(row.nl ?? ''),
-              de: String(row.de ?? ''),
+              fr: String(fr),
+              nl: String(nl),
+              de: String(de),
+              hint: String(hint),
               pack: path
             });
           });
@@ -169,13 +178,8 @@
     }
   }
 
-  function guessCategory(path){
-    // derive a clean label from filename
-    const file = path.split('/').pop();
-    return (file||'').replace(/_/g,' ').replace(/\..+$/,'');
-  }
-
   function buildCategorySelect(){
+
     const sel = $('#category');
     const current = sel.value;
     sel.innerHTML = '<option value="">Alle Kategorien</option>' +
@@ -208,7 +212,7 @@
         </div>
         <div class="txt-main">${escapeHtml(item[state.primary] || '')}</div>
         <div class="txt-sub">${escapeHtml(item[state.secondary] || '')}</div>
-        <div class="txt-de">${escapeHtml(item.de || '')}</div>
+        <div class="txt-de">${escapeHtml(item.de || '')}${item.hint ? ' · <em>Hint: ' + escapeHtml(item.hint) + '</em>' : ''}</div>
       `;
       frag.appendChild(card);
     }
