@@ -1,0 +1,17 @@
+{
+  "name": "Arbeit & Absprachen (Plus 1)",
+  "phrases": [
+    {"fr":"Tu finis à quelle heure ?","en":"Wann bist du fertig?","hint":"tü fi-ni a kel ör"},
+    {"fr":"On décale à demain ?","en":"Schieben wir auf morgen?","hint":"on de-kal a dö-mäng"},
+    {"fr":"Ça te va si on avance ?","en":"Okay, wenn wir vorziehen?","hint":"sa tö va si on a-vons"},
+    {"fr":"Je m’en occupe.","en":"Ich kümmere mich.","hint":"zhö mon no-küp"},
+    {"fr":"Tu peux relire ça ?","en":"Kannst du das gegenlesen?","hint":"tü pö rö-lir sa"},
+    {"fr":"On fait simple.","en":"Wir machen’s einfach.","hint":"on fe sampl"},
+    {"fr":"On partage la charge.","en":"Wir teilen die Arbeit.","hint":"on par-tazh la scharsch"},
+    {"fr":"Tiens-moi au courant.","en":"Halte mich auf dem Laufenden.","hint":"tjäng-mwa o ku-ron"},
+    {"fr":"On s’appelle après.","en":"Wir telefonieren danach.","hint":"on sa-pell a-prä"},
+    {"fr":"Ça avance bien.","en":"Es geht gut voran.","hint":"sa a-vons byan"},
+    {"fr":"Top, merci !","en":"Super, danke!","hint":"top, mehr-si"},
+    {"fr":"Désolé pour le retard.","en":"Sorry für die Verspätung.","hint":"deh-zo-le pur lö rö-tar"}
+  ]
+}
