@@ -1,0 +1,17 @@
+{
+  "name": "Gesundheit & Wohlbefinden (Plus 1)",
+  "phrases": [
+    {"fr":"Tu veux un médicament ?","en":"Willst du eine Tablette?","hint":"tü vö ün me-di-ka-mon"},
+    {"fr":"Je prends ta température.","en":"Ich messe deine Temperatur.","hint":"zhö pron ta tom-pe-ra-tyr"},
+    {"fr":"Tu veux que j’appelle ?","en":"Soll ich anrufen?","hint":"tü vö kö zha-pell"},
+    {"fr":"Bois de l’eau.","en":"Trink Wasser.","hint":"bwa dö lo"},
+    {"fr":"Respire calmement.","en":"Atme ruhig.","hint":"res-pir kal-mö-mon"},
+    {"fr":"Ça te fait mal où ?","en":"Wo tut’s weh?","hint":"sa tö fe mal u"},
+    {"fr":"Tu as pris quelque chose ?","en":"Hast du was genommen?","hint":"tü a pri kelk schöz"},
+    {"fr":"On va se reposer.","en":"Wir ruhen uns aus.","hint":"on va sö rö-po-se"},
+    {"fr":"Tu veux une soupe ?","en":"Magst du eine Suppe?","hint":"tü vö ün sup"},
+    {"fr":"Fais une sieste.","en":"Mach ein Nickerchen.","hint":"fe ün sjest"},
+    {"fr":"Je t’accompagne chez le médecin.","en":"Ich komme mit zum Arzt.","hint":"zhö ta-kon-pan sche lö med-säng"},
+    {"fr":"N’hésite pas à me dire.","en":"Sag’s mir ruhig.","hint":"ne-ziT pah a mö dir"}
+  ]
+}
