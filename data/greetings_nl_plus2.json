@@ -1,0 +1,17 @@
+{
+  "name": "Groeten & Dagelijks (Plus 2)",
+  "phrases": [
+    { "nl": "Goedemorgen!", "en": "Guten Morgen!", "hint": "chuu-de-mor-ghen" },
+    { "nl": "Goedemiddag!", "en": "Guten Tag!", "hint": "chuu-de-mid-dach" },
+    { "nl": "Goedenavond!", "en": "Guten Abend!", "hint": "chuu-den-aavond" },
+    { "nl": "Fijn je weer te zien.", "en": "Schön dich wiederzusehen.", "hint": "fäin je weer te zien" },
+    { "nl": "Hoe was je dag?", "en": "Wie war dein Tag?", "hint": "hu was je dach" },
+    { "nl": "Wat leuk!", "en": "Wie schön!", "hint": "wat löök" },
+    { "nl": "Zorg goed voor jezelf.", "en": "Pass gut auf dich auf.", "hint": "zorg chuut vor je zelf" },
+    { "nl": "Tot de volgende keer!", "en": "Bis zum nächsten Mal!", "hint": "tot dö vol-ghen-de keer" },
+    { "nl": "Doei!", "en": "Tschüss!", "hint": "dui" },
+    { "nl": "Bedankt!", "en": "Danke!", "hint": "be-dankt" },
+    { "nl": "Succes!", "en": "Viel Erfolg!", "hint": "suk-sess" },
+    { "nl": "Gezellig!", "en": "Gemütlich!", "hint": "che-zeh-llich" }
+  ]
+}
