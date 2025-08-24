@@ -1,0 +1,17 @@
+{
+  "name": "Familie & Nähe (Plus 2)",
+  "phrases": [
+    {"fr":"On se voit dimanche ?","en":"Sehen wir uns Sonntag?","hint":"on sö vwa di-monch"},
+    {"fr":"Tu viens manger à la maison ?","en":"Kommst du zum Essen zu uns?","hint":"tü vjäng mon-zhe a la mä-son"},
+    {"fr":"Ça te fait plaisir ?","en":"Freut dich das?","hint":"sa tö fe ple-zir"},
+    {"fr":"Je suis fier/fière de toi.","en":"Ich bin stolz auf dich.","hint":"zhö swi fjer dö twa"},
+    {"fr":"Ça reste entre nous.","en":"Das bleibt unter uns.","hint":"sa rest ontr nu"},
+    {"fr":"On t’attend.","en":"Wir warten auf dich.","hint":"on ta-ton"},
+    {"fr":"Tu me préviens si besoin.","en":"Sag Bescheid, wenn was ist.","hint":"tü mö prä-vjäng si bö-swän"},
+    {"fr":"Ça me touche.","en":"Das rührt mich.","hint":"sa mö tusch"},
+    {"fr":"Bonne nouvelle !","en":"Gute Nachricht!","hint":"bon nu-vell"},
+    {"fr":"On célèbre ça !","en":"Das feiern wir!","hint":"on se-lebr sa"},
+    {"fr":"Tu es chez toi ici.","en":"Hier bist du zuhause.","hint":"tü ä sche twa i-si"},
+    {"fr":"Repose-toi un peu.","en":"Ruh dich ein bisschen aus.","hint":"rö-pos twa ün pö"}
+  ]
+}
