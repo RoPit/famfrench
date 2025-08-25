@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FamLang – informell, familiär (FR ⇄ NL)</title>
+  <style>
+    :root{ --bg:#0f1115;--fg:#e8ebf0;--muted:#9aa3b2;--card:#151822;--accent:#5aa9ff;--chip:#232738;--ring:#2b3246;--ok:#45d483; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+    header h1{margin:0 0 6px;font-weight:800;letter-spacing:.3px}
+    header p{margin:4px 0 0;color:var(--muted)}
+    .bar{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin:18px 0}
+    .search{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:10px 12px}
+    .search input{flex:1;background:transparent;border:0;outline:none;color:var(--fg);font-size:17px;min-height:40px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    select,button{background:var(--chip);color:var(--fg);border:1px solid var(--ring);border-radius:14px;padding:8px 14px;font-size:14px;cursor:pointer;min-height:40px;min-width:110px}
+    button[aria-pressed="true"]{outline:2px solid var(--accent)}
+    .flags{display:flex;gap:8px}
+    .flag{width:34px;height:24px;border-radius:6px;border:1px solid var(--ring);cursor:pointer;opacity:.82;transition:opacity .15s ease}
+    .flag.active{outline:2px solid var(--ok);opacity:1}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0 36px}
+    @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:16px;box-shadow:0 1px 0 rgba(0,0,0,.25)}
+    .cat{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--ring);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted);white-space:nowrap}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .txt-main{font-size:18px;margin:6px 0 2px;font-weight:700}
+    .txt-sub{font-size:16px;margin:2px 0;color:#d7dbef}
+    .txt-de{font-size:13px;margin:8px 0 0;color:var(--muted)}
+    .empty{margin:24px 0;color:var(--muted);text-align:center}
+    footer{color:var(--muted);font-size:12px;margin:20px 0 40px;text-align:center;line-height:1.4}
+    .pill{background:var(--chip);border:1px solid var(--ring);border-radius:999px;padding:8px 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;min-width:120px;line-height:1}
+    .pill:hover{background:#2a3045}
+    .pill:active{transform:scale(0.98)}
+    .pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+    .card .row.actions{justify-content:flex-end;gap:10px;margin-top:10px;flex-wrap:wrap}
+    .score{font-size:12px;color:var(--muted);margin-left:auto}
+    .pack-title{grid-column:1 / -1;margin:6px 0 2px;color:var(--muted);font-weight:600}
+    @media (max-width:480px){.card .row.actions .pill{flex:1;min-width:0}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>FamLang – informell, familiär <small style="font-weight:500;color:var(--muted)">(FR ⇄ NL)</small></h1>
+      <p>Klicke 🇫🇷 oder 🇳🇱 – die App zeigt & spricht die gewählte Sprache. Alles läuft als Einzeldatei und ist GitHub-Pages-sicher (keine führenden Slashes).</p>
+    </header>
+
+    <div class="bar">
+      <div class="search" role="search">
+        <input id="q" type="search" placeholder="Suche (FR/NL/DE)…" autocomplete="off" />
+        <button id="mic" class="pill" title="Spracheingabe starten/stoppen">Mikrofon</button>
+      </div>
+      <div class="flags" aria-label="Sprachauswahl">
+        <img id="flag-fr" class="flag" alt="FR" title="Französisch als Hauptsprache" />
+        <img id="flag-nl" class="flag" alt="NL" title="Niederländisch als Hauptsprache" />
+      </div>
+    </div>
+
+    <div class="filters">
+      <select id="category">
+        <option value="">Alle Kategorien</option>
+      </select>
+      <button id="show-today" class="pill" aria-pressed="false">Heute</button>
+      <button id="show-all" class="pill" aria-pressed="true">Alle</button>
+      <button id="show-packs" class="pill" aria-pressed="false">Packs</button>
+      <button id="tts-toggle" class="pill" aria-pressed="false" title="Vorlesen beim Antippen aktivieren/deaktivieren">Auto-TTS: Aus</button>
+    </div>
+
+    <div id="results" class="grid" aria-live="polite"></div>
+    <div id="empty" class="empty" hidden>Keine Einträge gefunden.</div>
+
+    <footer>
+      <div>Hinweis: Manifest & JSON werden relativ zur aktuellen Seite geladen.<br>Wenn dein Repo <code>/data</code> enthält, trage die Dateien in <code>manifest.json</code> ein (ohne führenden Slash). Optional kannst du <code>todayPacks</code> in der Manifest-Datei definieren, um die „Heute“-Ansicht zu steuern.</div>
+    </footer>
+  </div>
+
+<script>
+(() => {
+  // ---------- helpers
+  const $  = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const BASE = new URL('./', window.location.href);
+  const urlFor  = (p) => new URL(p, BASE).toString();
+  const fetchJson = async (p) => {
+    const res = await fetch(urlFor(p), { cache:'no-store' });
+    if(!res.ok) throw new Error(`Fetch failed ${p}: ${res.status}`);
+    return res.json();
+  };
+
+  // ---------- state
+  const state = {
+    primary:'fr',
+    secondary:'nl',
+    show:'all',            // all | today | packs
+    category:'',
+    q:'',
+    items:[],
+    categories:new Set(),
+    todaySet:new Set(),
+    tts:{ enabled:false, voices:[], ready:false }
+  };
+
+  // ---------- flags (inline SVG)
+  const svgFR = 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><rect width="1" height="2" x="0" fill="#0055A4"/><rect width="1" height="2" x="1" fill="#fff"/><rect width="1" height="2" x="2" fill="#EF4135"/></svg>');
+  const svgNL = 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2"><rect width="3" height="2" fill="#21468B"/><rect width="3" height="1.333" y="0.333" fill="#fff"/><rect width="3" height="0.666" y="0" fill="#AE1C28"/></svg>');
+  $('#flag-fr').src = svgFR; $('#flag-nl').src = svgNL;
+
+  // ---------- events
+  $('#flag-fr').addEventListener('click', ()=> setLang('fr','nl'));
+  $('#flag-nl').addEventListener('click', ()=> setLang('nl','fr'));
+  $('#q').addEventListener('input', e=>{ state.q = e.target.value.trim().toLowerCase(); render(); });
+  $('#category').addEventListener('change', e=>{ state.category = e.target.value; render(); });
+  $('#show-today').addEventListener('click', ()=> setShow('today'));
+  $('#show-all').addEventListener('click',  ()=> setShow('all'));
+  $('#show-packs').addEventListener('click',()=> setShow('packs'));
+  $('#tts-toggle').addEventListener('click', ()=>{ state.tts.enabled = !state.tts.enabled; updateTtsToggle(); });
+
+  function setShow(mode){
+    state.show = mode;
+    $('#show-today').setAttribute('aria-pressed', mode==='today');
+    $('#show-all').setAttribute('aria-pressed', mode==='all');
+    $('#show-packs').setAttribute('aria-pressed', mode==='packs');
+    render();
+  }
+
+  function setLang(primary, secondary){
+    state.primary = primary; state.secondary = secondary;
+    $$('.flag').forEach(f=>f.classList.remove('active'));
+    if(primary==='fr') $('#flag-fr').classList.add('active');
+    if(primary==='nl') $('#flag-nl').classList.add('active');
+    renderTitle(); render();
+  }
+
+  function renderTitle(){
+    const pair = state.primary==='fr' ? 'FR ⇄ NL' : 'NL ⇄ FR';
+    $('header h1').innerHTML = `FamLang – informell, familiär <small style="font-weight:500;color:var(--muted)">(${pair})</small>`;
+  }
+
+  // ---------- data loading
+  async function loadAll(){
+    try{
+      const manifest = await fetchJson('data/manifest.json');
+      const packs = Array.isArray(manifest.packs) ? manifest.packs : [];
+      state.todaySet = new Set(Array.isArray(manifest.todayPacks) ? manifest.todayPacks : []);
+
+      const results = await Promise.all(packs.map(async p => ({ path:p, raw: await fetchJson(p) })));
+
+      state.items=[]; state.categories=new Set();
+      for(const {path, raw} of results){
+        const rows = Array.isArray(raw) ? raw : (Array.isArray(raw?.phrases) ? raw.phrases : []);
+        const category = (manifest.categoryNames && manifest.categoryNames[path]) || (raw && raw.name) || guessCategory(path);
+        state.categories.add(category);
+
+        if(Array.isArray(rows)){
+          rows.forEach((row, idx)=>{
+            const fr   = row.fr ?? '';
+            const nl   = row.nl ?? '';
+            const de   = (row.de ?? row.en ?? ''); // DE falls back to EN
+            const hint = row.hint ?? '';
+            const date = row.date || '';
+            state.items.push({ id:`${path}#${idx}`, category, fr:String(fr), nl:String(nl), de:String(de), hint:String(hint), pack:path, date:String(date) });
+          });
+        }
+      }
+      buildCategorySelect();
+      render();
+    }catch(err){ showError(err); }
+  }
+
+  function guessCategory(path){
+    const file = path.split('/').pop();
+    return (file||'').replace(/_/g,' ').replace(/\..+$/,'');
+  }
+
+  function buildCategorySelect(){
+    const sel = $('#category');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">Alle Kategorien</option>' +
+      Array.from(state.categories).sort().map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    sel.value = current || '';
+  }
+
+  // ---------- render
+  function render(){
+    const list = $('#results');
+    const empty = $('#empty');
+    list.innerHTML='';
+
+    let view = state.items.slice();
+    if(state.category) view = view.filter(x=>x.category===state.category);
+    if(state.q){
+      const q = state.q;
+      view = view.filter(x => (x.fr.toLowerCase().includes(q) || x.nl.toLowerCase().includes(q) || x.de.toLowerCase().includes(q)));
+    }
+    if(state.show==='today'){
+      const todayISO = new Date().toISOString().slice(0,10);
+      view = view.filter(x => state.todaySet.size>0 ? state.todaySet.has(x.pack) : (x.date && x.date.startsWith(todayISO)));
+    }
+
+    if(!view.length){ empty.hidden=false; return; } else { empty.hidden=true; }
+
+    const frag = document.createDocumentFragment();
+
+    if(state.show==='packs'){
+      view.sort((a,b)=> a.pack.localeCompare(b.pack) || a.id.localeCompare(b.id));
+      let currentPack='';
+      for(const item of view){
+        if(item.pack!==currentPack){
+          currentPack=item.pack;
+          const h=document.createElement('h3');
+          h.className='pack-title';
+          h.textContent=item.pack.split('/').pop();
+          frag.appendChild(h);
+        }
+        renderCard(frag,item);
+      }
+    } else {
+      for(const item of view) renderCard(frag,item);
+    }
+
+    list.appendChild(frag);
+  }
+
+  function renderCard(frag,item){
+    const sec = getSecondary(item);
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = `
+      <div class="row" style="justify-content:space-between">
+        <span class="cat" title="Kategorie">${escapeHtml(item.category)}</span>
+        <span class="cat" title="Paket">${escapeHtml(item.pack.split('/').pop())}</span>
+      </div>
+      <div class="txt-main">${escapeHtml(item[state.primary] || '')}</div>
+      <div class="txt-sub">${sec.label.toUpperCase()}: ${escapeHtml(sec.text)}</div>
+      <div class="txt-de">${escapeHtml(item.de || '')}${item.hint ? ' · <em>Hint: ' + escapeHtml(item.hint) + '</em>' : ''}</div>
+      <div class="row actions">
+        <button class="pill say" data-mode="normal" data-text="${escapeAttr(item[state.primary] || '')}" data-lang="${state.primary}">Abspielen</button>
+        <button class="pill say" data-mode="slow" data-text="${escapeAttr(item[state.primary] || '')}" data-lang="${state.primary}">Langsam</button>
+        <button class="pill rec" data-text="${escapeAttr(item[state.primary] || '')}" data-lang="${state.primary}">Aufnehmen</button>
+        <span class="score" aria-live="polite"></span>
+      </div>
+    `;
+    frag.appendChild(card);
+  }
+
+  // choose proper secondary text AND its label (so fallback shows correct tag)
+  function getSecondary(item){
+    const byKey = (k)=> (k && typeof item[k]==='string' && item[k].trim()) ? item[k] : '';
+    const tryKey = (k)=>{ const v=byKey(k); if(v) return {label:k, text:v}; return null; };
+
+    // 1) configured secondary
+    let res = tryKey(state.secondary); if(res) return res;
+    // 2) German (falls back to EN during load if DE was missing)
+    res = tryKey('de'); if(res) return res;
+    // 3) the other language of the pair
+    res = (state.primary==='fr') ? tryKey('nl') : tryKey('fr'); if(res) return res;
+    // 4) English
+    res = tryKey('en'); if(res) return res;
+
+    return {label:state.secondary, text:''};
+  }
+
+  // ---------- misc
+  function escapeHtml(s){ return String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+  function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
+  function showError(err){ $('#empty').hidden=false; $('#empty').textContent='Fehler beim Laden: ' + (err?.message || err); console.error(err); }
+
+  // ---------- TTS / Speech
+  function initTTS(){
+    const hasTTS = 'speechSynthesis' in window;
+    if(hasTTS){
+      const loadVoices = () => { state.tts.voices = window.speechSynthesis.getVoices(); state.tts.ready = true; };
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    // Card actions
+    $('#results').addEventListener('click', (e)=>{
+      const sayBtn = e.target.closest('.say');
+      if(sayBtn){
+        if(!hasTTS) return;
+        const text = sayBtn.getAttribute('data-text') || '';
+        const langCode = sayBtn.getAttribute('data-lang') === 'nl' ? 'nl-NL' : 'fr-FR';
+        const mode = sayBtn.getAttribute('data-mode') || 'normal';
+        speak(text, langCode, mode);
+        return;
+      }
+      const recBtn = e.target.closest('.rec');
+      if(recBtn){ startRecognition(recBtn); return; }
+
+      const card = e.target.closest('.card');
+      if(!card) return;
+      if(!state.tts.enabled || !hasTTS) return;
+      const main = card.querySelector('.txt-main');
+      const text = main ? main.textContent.trim() : '';
+      const lang = state.primary === 'nl' ? 'nl-NL' : 'fr-FR';
+      speak(text, lang, 'normal');
+    });
+
+    // Mic → search (DE by default)
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const micBtn = $('#mic');
+    if(!SR){ if(micBtn){ micBtn.disabled=true; micBtn.title='Spracherkennung nicht verfügbar'; } return; }
+    let micActive=false;
+    const rec = new SR();
+    rec.lang='de-DE';
+    rec.interimResults=false; rec.continuous=false;
+    if(micBtn){
+      micBtn.addEventListener('click', ()=>{
+        if(micActive){ rec.stop(); return; }
+        micActive=true; micBtn.textContent='Stoppen';
+        try{ rec.start(); }catch{}
+      });
+      rec.onresult = (e)=>{
+        const t = Array.from(e.results).map(r=>r[0].transcript).join(' ');
+        $('#q').value = t; state.q = t.toLowerCase(); render();
+      };
+      rec.onerror = ()=>{ micActive=false; micBtn.textContent='Mikrofon'; };
+      rec.onend   = ()=>{ micActive=false; micBtn.textContent='Mikrofon'; };
+    }
+  }
+
+  function updateTtsToggle(){
+    const b=$('#tts-toggle');
+    b.setAttribute('aria-pressed', state.tts.enabled);
+    b.textContent = state.tts.enabled ? 'Auto-TTS: An' : 'Auto-TTS: Aus';
+  }
+
+  function speak(text, lang, mode){
+    if(!text) return;
+    try{
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang;
+      if(mode==='slow') u.rate = 0.75;
+      const v = state.tts.voices.find(v=>v.lang && v.lang.startsWith(lang.slice(0,2)));
+      if(v) u.voice = v;
+      window.speechSynthesis.speak(u);
+    }catch{}
+  }
+
+  // recording + simple accuracy score
+  function startRecognition(btn){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ alert('Spracherkennung wird nicht unterstützt.'); return; }
+    const expect = btn.getAttribute('data-text') || '';
+    const lang   = btn.getAttribute('data-lang') === 'nl' ? 'nl-NL' : 'fr-FR';
+    const card   = btn.closest('.card');
+    const scoreEl= card.querySelector('.score');
+    const rec = new SR();
+    rec.lang = lang; rec.interimResults=false; rec.continuous=false;
+    scoreEl.textContent='Aufnahme läuft…';
+    try{ rec.start(); }catch{}
+    rec.onresult = (e)=>{
+      const said = Array.from(e.results).map(r=>r[0].transcript).join(' ');
+      const acc = similarityPercent(normalize(expect), normalize(said));
+      scoreEl.textContent = 'Treffer: ' + acc + '%';
+    };
+    rec.onerror = ()=>{ scoreEl.textContent='Fehler'; };
+    rec.onend   = ()=>{ if(scoreEl.textContent==='Aufnahme läuft…') scoreEl.textContent='–'; };
+  }
+
+  function normalize(s){
+    return String(s).toLowerCase().normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-zA-Z\d\s']/g,' ')
+      .replace(/\s+/g,' ').trim();
+  }
+  function similarityPercent(a,b){
+    if(!a && !b) return 100;
+    const dist = levenshtein(a,b);
+    const maxLen = Math.max(a.length, b.length) || 1;
+    return Math.round((1 - dist/maxLen) * 100);
+  }
+  function levenshtein(a,b){
+    const m=a.length, n=b.length;
+    const dp = Array.from({length:m+1},()=>new Array(n+1).fill(0));
+    for(let i=0;i<=m;i++) dp[i][0]=i;
+    for(let j=0;j<=n;j++) dp[0][j]=j;
+    for(let i=1;i<=m;i++){
+      for(let j=1;j<=n;j++){
+        const cost = a[i-1]===b[j-1]?0:1;
+        dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
+      }
+    }
+    return dp[m][n];
+  }
+
+  // ---------- boot
+  setLang('fr','nl');
+  initTTS();
+  updateTtsToggle();
+  loadAll();
+})();
+</script>
+</body>
+</html>
