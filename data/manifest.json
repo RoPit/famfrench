@@ -16,6 +16,8 @@
   "todayPacks": [
     "data/greetings_plus2.json"
   ],
+
+  /* Technische Schlüssel → Kurzname (wie bisher) */
   "categoryNames": {
     "data/family_plus1.json": "family_plus1",
     "data/family_plus2.json": "family_plus2",
@@ -29,5 +31,37 @@
     "data/visits.json": "visits",
     "data/work_plus1.json": "work_plus1",
     "data/work_plus2.json": "work_plus2"
-  }
+  },
+
+  /* NEU: Deutsche Anzeigenamen */
+  "categoryLabels": {
+    "family_plus1": "Familie & Nähe (Plus 1)",
+    "family_plus2": "Familie & Nähe (Plus 2)",
+    "food":         "Essen & Trinken",
+    "food_plus1":   "Essen & Trinken (Plus 1)",
+    "food_plus2":   "Essen & Trinken (Plus 2)",
+    "greetings_plus1": "Grüße & Alltag (Plus 1)",
+    "greetings_plus2": "Grüße & Alltag (Plus 2)",
+    "health_plus1": "Gesundheit (Plus 1)",
+    "health_plus2": "Gesundheit (Plus 2)",
+    "visits":       "Besuche",
+    "work_plus1":   "Arbeit (Plus 1)",
+    "work_plus2":   "Arbeit (Plus 2)"
+  },
+
+  /* NEU: Reihenfolge im Dropdown */
+  "categoryOrder": [
+    "greetings_plus1",
+    "greetings_plus2",
+    "family_plus1",
+    "family_plus2",
+    "food",
+    "food_plus1",
+    "food_plus2",
+    "health_plus1",
+    "health_plus2",
+    "visits",
+    "work_plus1",
+    "work_plus2"
+  ]
 }
