@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FamLang – informell, familiär (FR ⇄ DE)</title>
+<style>
+  :root{
+    --bg:#0f1115;--fg:#e8ebf0;--muted:#9aa3b2;--card:#151822;--chip:#232738;--ring:#2b3246;
+    --accent:#5aa9ff;--ok:#45d483;--warn:#e6b84a;--bad:#e06b6b;--ink:#081217;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  .wrap{max-width:980px;margin:20px auto;padding:0 16px}
+  header h1{margin:0;font-weight:800;letter-spacing:.3px}
+  header small{color:var(--muted);font-weight:600}
+  header p{margin:8px 0 0;color:var(--muted)}
+
+  .bar{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin:18px 0}
+  .search{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:10px 12px}
+  .search input{flex:1;background:transparent;border:0;outline:none;color:var(--fg);font-size:17px;min-height:40px}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  select,button{background:var(--chip);color:var(--fg);border:1px solid var(--ring);border-radius:14px;padding:10px 14px;font-size:14px;cursor:pointer;min-height:40px}
+  button[aria-pressed="true"]{outline:2px solid var(--accent)}
+
+  /* Summary */
+  #daily{background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:12px;margin:8px 0 16px}
+  #daily .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  #daily .meter{height:10px;border-radius:8px;background:#2a2f3f;border:1px solid var(--ring);overflow:hidden;margin-top:8px}
+  #daily .meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--bad),#e39f3a,var(--ok));width:0%}
+  .chip-mini{padding:4px 8px;border:1px solid var(--ring);border-radius:999px;background:#202638;font-size:12px}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:14px;margin:10px 0 40px}
+  @media (min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+
+  .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:16px;box-shadow:0 1px 0 rgba(0,0,0,.25)}
+  .cat{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--ring);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .top{justify-content:space-between;margin-bottom:6px}
+  .txt-main{font-size:20px;margin:6px 0 2px;font-weight:800}
+  .txt-sub{font-size:16px;margin:2px 0;color:#d7dbef}
+  .txt-de{font-size:13px;margin:6px 0 10px;color:var(--muted)}
+  .empty{margin:24px 0;color:var(--muted);text-align:center}
+
+  .legend{display:flex;gap:14px;align-items:center}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:6px}
+  .ok{background:var(--ok)} .mid{background:var(--warn)} .bad{background:var(--bad)}
+
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 8px}
+  .chip{padding:8px 12px;border-radius:999px;border:1px solid var(--ring);background:#202638;font-weight:700}
+  .chip.ok{background:#173628;border-color:#245e3f}
+  .chip.mid{background:#3b3417;border-color:#6e6126}
+  .chip.bad{background:#3b1c1c;border-color:#6e2e2e}
+  .chip.miss{background:#263045;border-color:#3a4a6b}
+
+  .meter{height:10px;border-radius:8px;background:#2a2f3f;border:1px solid var(--ring);overflow:hidden}
+  .meter>span{display:block;height:100%;background:linear-gradient(90deg,var(--bad),#e39f3a,var(--ok));width:0%}
+
+  .heard{border:1px dashed var(--ring);background:#121724;border-radius:12px;padding:12px;margin:6px 0 10px}
+  .heard h5{margin:0 0 6px;font-size:14px;color:var(--muted)}
+  .heard .text{font-size:16px}
+  .heard .sub{color:var(--muted);font-size:13px;margin-top:4px}
+
+  .statsline{color:var(--muted);font-size:13px;margin:8px 0 6px}
+
+  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+  .btn{border-radius:14px;border:1px solid var(--ring);background:var(--chip);padding:14px 12px;font-weight:700;text-align:center}
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:scale(.98)}
+  .btn-ghost{opacity:.9}
+
+  .record-wrap{margin-top:10px}
+  .btn-record{width:100%;border-radius:14px;border:0;padding:14px 12px;font-weight:900;letter-spacing:.2px;text-align:center}
+  .btn-record.ready{background:#2dd4bf;color:var(--ink)}             /* green */
+  .btn-record.recording{background:#e26666;color:#fff}               /* red  */
+  .btn-record.disabled{background:#444;color:#999;cursor:not-allowed}
+
+  .pack-title{grid-column:1/-1;margin:6px 0 2px;color:var(--muted);font-weight:600}
+  #load-warn{margin:10px 0;padding:10px;border:1px solid #8b5;border-radius:10px;background:#1b2620;color:#cde;font-size:13px}
+
+  /* Summary buttons */
+  #tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>FamLang – informell, familiär <small>(FR ⇄ DE)</small></h1>
+    <p>Französisch als Hauptsprache, deutsche Übersetzung als Hilfe. Alles läuft als Einzeldatei und ist GitHub-Pages-sicher.</p>
+  </header>
+
+  <div class="bar">
+    <div class="search" role="search">
+      <input id="q" type="search" placeholder="Suche (FR/DE)…" autocomplete="off" />
+      <button id="mic" class="btn btn-ghost" title="Spracherkennung starten/stoppen">Mikrofon</button>
+    </div>
+  </div>
+
+  <div id="load-warn" hidden></div>
+
+  <div class="filters">
+    <select id="category"><option value="">Alle Kategorien</option></select>
+    <button id="show-today" class="btn" aria-pressed="false">Heute</button>
+    <button id="show-all" class="btn" aria-pressed="true">Alle</button>
+    <button id="show-packs" class="btn" aria-pressed="false">Packs</button>
+    <button id="tts-toggle" class="btn" aria-pressed="false" title="Vorlesen beim Antippen aktivieren/deaktivieren">Auto-TTS: Aus</button>
+  </div>
+
+  <!-- Daily summary with streaks + tools -->
+  <div id="daily" hidden>
+    <div class="row">
+      <strong>Heute:</strong>
+      <span id="d-attempts">0 Versuche</span> ·
+      <span id="d-average">Ø 0%</span> ·
+      <span id="d-target">Ziel: 30</span>
+      <span class="chip-mini" id="streak-day">Tages-Streak: 0🔥</span>
+      <span class="chip-mini" id="streak-week">Wochen-Streak: 0🔥</span>
+    </div>
+    <div class="meter" aria-label="Tagesziel Fortschritt"><span id="d-meter" style="width:0%"></span></div>
+    <div id="tools">
+      <button id="export-log" class="btn">Log exportieren</button>
+      <button id="reset-log" class="btn">Log zurücksetzen</button>
+    </div>
+  </div>
+
+  <div id="results" class="grid" aria-live="polite"></div>
+  <div id="empty" class="empty" hidden>Keine Einträge gefunden.</div>
+</div>
+
+<script>
+(()=>{
+/* ====================== Config ====================== */
+const TARGET_DAILY_ATTEMPTS = 30;
+const STORAGE_KEY = 'famlang_logs_v1';
+
+/* ====================== Helpers ===================== */
+const $ = (s, r=document)=>r.querySelector(s);
+const $$= (s, r=document)=>Array.from(r.querySelectorAll(s));
+const BASE=new URL('./', location.href);
+const urlFor=p=>new URL(p, BASE).toString();
+const fetchJson=async(p)=>{const res=await fetch(urlFor(p),{cache:'no-store'}); if(!res.ok) throw new Error(`Fetch failed ${p}: ${res.status}`); return res.json();};
+const escHtml=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const escAttr=s=>escHtml(s).replace(/`/g,'&#96;');
+const todayStr=()=>new Date().toISOString().slice(0,10);
+
+/* ISO week helpers */
+function isoWeekParts(d){
+  const date=new Date(d.getTime());
+  // Set to nearest Thursday
+  date.setHours(0,0,0,0);
+  date.setDate(date.getDate()+4-(date.getDay()||7));
+  const yearStart=new Date(date.getFullYear(),0,1);
+  const week=Math.ceil((((date - yearStart)/86400000)+1)/7);
+  return {year:date.getFullYear(), week};
+}
+function isoKeyFromISO(iso){ return isoWeekParts(new Date(iso)).year+'-W'+String(isoWeekParts(new Date(iso)).week).padStart(2,'0'); }
+
+/* ====================== State ======================= */
+const state = {
+  show:'all', category:'', q:'',
+  items:[], categories:new Set(), todaySet:new Set(),
+  tts:{enabled:false,voices:[],ready:false,pref:'google'},
+  logs:[]
+};
+let manifestOrder=[];
+
+/* ================== Storage / Stats ================= */
+function loadLogs(){
+  try{ state.logs = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
+  catch{ state.logs=[]; }
+}
+function writeLogs(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.logs)); }catch{}
+}
+function saveLog(entry){ state.logs.push(entry); writeLogs(); }
+
+function getPhraseStats(id){
+  const arr = state.logs.filter(x=>x.id===id).sort((a,b)=>b.tsISO.localeCompare(a.tsISO));
+  const last = arr[0]?.score ?? null;
+  const avg10 = arr.slice(0,10).reduce((s,x)=>s+x.score,0) / (arr.slice(0,10).length||1);
+  return {
+    last: last!=null ? Math.round(last) : null,
+    avg10: arr.length ? Math.round(avg10) : null,
+    count: arr.length
+  };
+}
+function getDailyStats(){
+  const day = todayStr();
+  const today = state.logs.filter(x=>x.day===day);
+  const attempts = today.length;
+  const avg = attempts ? Math.round(today.reduce((s,x)=>s+x.score,0)/attempts) : 0;
+  const pct = Math.max(0, Math.min(100, Math.round((attempts/TARGET_DAILY_ATTEMPTS)*100)));
+  return {attempts, avg, pct, target: TARGET_DAILY_ATTEMPTS};
+}
+
+/* Streaks */
+function getDailyStreak(){
+  const daysSet = new Set(state.logs.map(l=>l.day));
+  let streak = 0;
+  let cursor = new Date();
+  while(true){
+    const iso = cursor.toISOString().slice(0,10);
+    if(daysSet.has(iso)){ streak++; cursor.setDate(cursor.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+function getWeeklyStreak(){
+  // Set of ISO year-week keys with ≥1 attempt
+  const weeksSet = new Set(state.logs.map(l=>isoKeyFromISO(l.day)));
+  let streak = 0;
+  let d = new Date();
+  // roll back to Monday (ISO week start)
+  const day = d.getDay() || 7; // Sun -> 7
+  d.setDate(d.getDate() - (day-1));
+  while(true){
+    const key = isoKeyFromISO(d.toISOString());
+    if(weeksSet.has(key)){ streak++; d.setDate(d.getDate()-7); }
+    else break;
+  }
+  return streak;
+}
+
+function refreshDailyBox(){
+  const box = $('#daily');
+  const {attempts, avg, pct, target} = getDailyStats();
+  $('#d-attempts').textContent = `${attempts} Versuche`;
+  $('#d-average').textContent  = `Ø ${avg}%`;
+  $('#d-target').textContent   = `Ziel: ${target}`;
+  $('#d-meter').style.width    = pct + '%';
+  $('#streak-day').textContent  = `Tages-Streak: ${getDailyStreak()}🔥`;
+  $('#streak-week').textContent = `Wochen-Streak: ${getWeeklyStreak()}🔥`;
+  box.hidden = false;
+}
+
+/* =================== UI toggles ===================== */
+$('#show-today').addEventListener('click',()=>setShow('today'));
+$('#show-all').addEventListener('click', ()=>setShow('all'));
+$('#show-packs').addEventListener('click',()=>setShow('packs'));
+$('#category').addEventListener('change', e=>{state.category=e.target.value; render();});
+$('#tts-toggle').addEventListener('click', ()=>{state.tts.enabled=!state.tts.enabled; updateTtsToggle();});
+$('#q').addEventListener('input', e=>{state.q = e.target.value.trim().toLowerCase(); render();});
+
+/* export/reset buttons */
+$('#export-log').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state.logs, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'famlang-log.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+$('#reset-log').addEventListener('click', ()=>{
+  if(!confirm('Log wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) return;
+  state.logs = []; writeLogs(); refreshDailyBox(); render();
+});
+
+function setShow(mode){
+  state.show=mode;
+  $('#show-today').setAttribute('aria-pressed', mode==='today');
+  $('#show-all').setAttribute('aria-pressed',  mode==='all');
+  $('#show-packs').setAttribute('aria-pressed',mode==='packs');
+  render();
+}
+function updateTtsToggle(){
+  const b=$('#tts-toggle');
+  b.setAttribute('aria-pressed', state.tts.enabled);
+  b.textContent = state.tts.enabled ? 'Auto-TTS: An' : 'Auto-TTS: Aus';
+}
+
+/* ============ Load manifest & data ================== */
+async function loadAll(){
+  try{
+    const manifest = await fetchJson('data/manifest.json');
+    const packs = Array.isArray(manifest.packs)?manifest.packs:[];
+    state.todaySet = new Set(Array.isArray(manifest.todayPacks)?manifest.todayPacks:[]);
+    const names = manifest.categoryNames || {};
+    const labels= manifest.categoryLabels || {};
+    manifestOrder = Array.isArray(manifest.categoryOrder)?manifest.categoryOrder:[];
+    const settled = await Promise.allSettled(packs.map(async p=>({path:p, raw:await fetchJson(p)})));
+
+    state.items=[]; state.categories=new Set(); const failed=[];
+    for(const r of settled){
+      if(r.status!=='fulfilled'){ failed.push(String(r.reason?.message||r.reason||'unbekannt')); continue; }
+      const {path,raw} = r.value;
+      const rows = Array.isArray(raw)?raw:(Array.isArray(raw?.phrases)?raw.phrases:[]);
+      const key = names[path] || raw?.name || guessCategory(path);
+      const label = labels[key] || key;
+      state.categories.add(key);
+      if(Array.isArray(rows)){
+        rows.forEach((row,idx)=>{
+          state.items.push({
+            id:`${path}#${idx}`,
+            categoryKey:key, categoryLabel:label,
+            fr:String(row.fr??''), de:String(row.de??row.en??''), hint:String(row.hint??''),
+            pack:path, date:String(row.date||'')
+          });
+        });
+      }
+    }
+    buildCategorySelect();
+    render();
+    showLoadReport(failed);
+  }catch(e){ showError(e); }
+}
+function guessCategory(path){ const f=path.split('/').pop(); return (f||'').replace(/_/g,' ').replace(/\..+$/,''); }
+function buildCategorySelect(){
+  const sel=$('#category'), cur=sel.value;
+  const keys=Array.from(state.categories);
+  const ordered=[...manifestOrder.filter(k=>keys.includes(k)), ...keys.filter(k=>!manifestOrder.includes(k)).sort()];
+  sel.innerHTML='<option value="">Alle Kategorien</option>'+ordered.map(k=>{
+    const any=state.items.find(x=>x.categoryKey===k); const label=any?any.categoryLabel:k;
+    return `<option value="${escHtml(k)}">${escHtml(label)}</option>`;
+  }).join('');
+  sel.value=cur||'';
+}
+function showLoadReport(failed){
+  const el=$('#load-warn');
+  if(!failed.length){ el.hidden=true; el.textContent=''; return; }
+  el.hidden=false;
+  el.innerHTML='⚠️ Einige Dateien konnten nicht geladen werden: '+
+    failed.map(s=>`<code>${escHtml(s)}</code>`).join(', ')+
+    '. Prüfe <code>data/manifest.json</code>.';
+}
+function showError(err){ $('#empty').hidden=false; $('#empty').textContent='Fehler beim Laden: '+(err?.message||err); console.error(err); }
+
+/* ===================== Render ======================= */
+function render(){
+  const list=$('#results'), empty=$('#empty'); list.innerHTML='';
+  let view=state.items.slice();
+  if(state.category) view=view.filter(x=>x.categoryKey===state.category);
+  if(state.q){
+    const q=state.q;
+    view=view.filter(x=> (x.fr+x.de).toLowerCase().includes(q) || (x.categoryLabel||'').toLowerCase().includes(q));
+  }
+  if(state.show==='today'){
+    const todayISO=new Date().toISOString().slice(0,10);
+    view=view.filter(x=> state.todaySet.size>0 ? state.todaySet.has(x.pack) : (x.date && x.date.startsWith(todayISO)));
+  }
+  if(!view.length){ empty.hidden=false; return; } else empty.hidden=true;
+
+  const frag=document.createDocumentFragment();
+  if(state.show==='packs'){
+    view.sort((a,b)=>a.pack.localeCompare(b.pack)||a.id.localeCompare(b.id));
+    let cur=''; for(const it of view){
+      if(it.pack!==cur){ cur=it.pack; const h=document.createElement('h3'); h.className='pack-title'; h.textContent=it.pack.split('/').pop(); frag.appendChild(h); }
+      renderCard(frag,it);
+    }
+  }else{ for(const it of view) renderCard(frag,it); }
+  list.appendChild(frag);
+
+  refreshDailyBox();
+}
+
+function renderCard(frag,item){
+  const stats = getPhraseStats(item.id);
+  const card=document.createElement('div'); card.className='card';
+  card.innerHTML=`
+    <div class="row top">
+      <span class="cat">${escHtml(item.categoryLabel)}</span>
+      <span class="cat">${escHtml(item.pack.split('/').pop())}</span>
+    </div>
+    <div class="txt-main">${escHtml(item.fr||'')}</div>
+    <div class="txt-sub">DE: ${escHtml(item.de||'')}</div>
+    <div class="txt-de">${item.hint?('Hinweis: '+escHtml(item.hint)):'&nbsp;'}</div>
+
+    <div class="legend" aria-hidden="true">
+      <strong class="percent">0%</strong>
+      <span><span class="dot ok"></span> gut</span>
+      <span><span class="dot mid"></span> okay</span>
+      <span><span class="dot bad"></span> verbessern</span>
+    </div>
+
+    <div class="chips"></div>
+
+    <div class="heard">
+      <h5>Verstanden:</h5>
+      <div class="text heard-text">—</div>
+      <div class="sub">Konfidenz: <span class="conf">–</span></div>
+    </div>
+
+    <div class="meter"><span style="width:0%"></span></div>
+
+    <div class="statsline">
+      <span class="st-last">${ stats.last!=null ? ('Letzter: '+stats.last+'%') : 'Letzter: —' }</span> ·
+      <span class="st-avg10">${ stats.avg10!=null ? ('Ø(10): '+stats.avg10+'%') : 'Ø(10): —' }</span> ·
+      <span class="st-count">Versuche: ${stats.count}</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn say" data-rate="1.0" data-text="${escAttr(item.fr||'')}">Abspielen</button>
+      <button class="btn say" data-rate="0.8" data-text="${escAttr(item.fr||'')}">Langsam</button>
+      <button class="btn say" data-rate="0.6" data-text="${escAttr(item.fr||'')}">Sehr langsam</button>
+    </div>
+
+    <div class="record-wrap">
+      <button class="btn-record rec ready" data-text="${escAttr(item.fr||'')}" data-id="${escAttr(item.id)}">● Aufnehmen</button>
+    </div>
+  `;
+  frag.appendChild(card);
+}
+
+/* ====================== TTS ========================= */
+function pickVoiceFor(lang, prefer='google'){
+  const want=(lang||'').slice(0,2).toLowerCase();
+  const vs=state.tts.voices||[];
+  const isG=v=>/google/i.test(v.name||''); const isS=v=>/samsung/i.test(v.name||'');
+  const starts=v=>(v.lang||'').toLowerCase().startsWith(want);
+  const incl  =v=>(v.lang||'').toLowerCase().includes(want);
+  const order={google:[v=>isG(v)&&starts(v), v=>isG(v)&&incl(v), v=>!isS(v)&&starts(v), v=>!isS(v)&&incl(v), v=>isS(v)&&starts(v), v=>isS(v)&&incl(v)], any:[v=>starts(v), v=>incl(v)]}[prefer||'google'];
+  for(const f of order){const m=vs.find(f); if(m) return m;}
+  return null;
+}
+function speak(text, rate=1.0){
+  if(!text.trim()) return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    const v=pickVoiceFor('fr-FR','google');
+    if(v){ u.voice=v; u.lang=v.lang||'fr-FR'; } else u.lang='fr-FR';
+    u.rate=rate; u.pitch=1.0;
+    setTimeout(()=>speechSynthesis.speak(u),100);
+  }catch(e){ console.error(e); }
+}
+
+/* ==================== Mic (search) ================== */
+function initMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const mic=$('#mic');
+  if(!SR){ if(mic){ mic.disabled=true; mic.title='Spracherkennung nicht verfügbar'; } return; }
+  let active=false; const rec=new SR(); rec.interimResults=false; rec.continuous=false;
+  mic.addEventListener('click', ()=>{
+    if(active){ rec.stop(); return; }
+    rec.lang='fr-FR'; active=true; mic.textContent='Stoppen';
+    try{ rec.start(); }catch{}
+  });
+  rec.onresult=e=>{
+    const t=Array.from(e.results).map(r=>r[0].transcript).join(' ');
+    $('#q').value=t; state.q=t.toLowerCase(); render();
+  };
+  const reset=()=>{ active=false; mic.textContent='Mikrofon'; };
+  rec.onerror=reset; rec.onend=reset;
+}
+
+/* ============== Recording + scoring ================= */
+function startRecognition(btn){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ alert('Spracherkennung wird nicht unterstützt.'); return; }
+
+  const card=btn.closest('.card');
+  const expected=btn.getAttribute('data-text')||'';
+  const phraseId=btn.getAttribute('data-id')||'';
+  const percentEl=card.querySelector('.percent');
+  const chipsEl  =card.querySelector('.chips');
+  const meterBar =card.querySelector('.meter>span');
+  const heardText=card.querySelector('.heard-text');
+  const confEl   =card.querySelector('.conf');
+
+  chipsEl.innerHTML=''; heardText.textContent='—'; confEl.textContent='–';
+  percentEl.textContent='0%'; meterBar.style.width='0%';
+
+  btn.classList.remove('ready'); btn.classList.add('recording'); btn.textContent='● Aufnahme läuft…';
+
+  const rec=new SR(); rec.lang='fr-FR'; rec.interimResults=false; rec.continuous=false;
+  try{ rec.start(); }catch{}
+
+  rec.onresult=(e)=>{
+    const first=e.results[0][0];
+    const said=Array.from(e.results).map(r=>r[0].transcript).join(' ');
+    const conf=first && typeof first.confidence==='number' ? Math.round(first.confidence*100) : null;
+
+    const {overall, perWord} = scorePronunciation(expected, said);
+    percentEl.textContent=overall+'%'; meterBar.style.width=overall+'%';
+
+    chipsEl.innerHTML='';
+    perWord.forEach(w=>{
+      const span=document.createElement('span');
+      span.className='chip '+w.class; span.textContent=w.text; chipsEl.appendChild(span);
+    });
+
+    heardText.textContent = said || '—';
+    confEl.textContent    = conf!=null ? (conf+'%') : '–';
+
+    // Save log
+    const entry = {
+      id: phraseId,
+      pack: (state.items.find(x=>x.id===phraseId)?.pack)||'',
+      cat:  (state.items.find(x=>x.id===phraseId)?.categoryKey)||'',
+      exp: expected,
+      said,
+      score: overall,
+      conf: conf ?? null,
+      tsISO: new Date().toISOString(),
+      day: todayStr()
+    };
+    saveLog(entry);
+    refreshStatsOnCard(card, phraseId);
+    refreshDailyBox();
+  };
+
+  const reset=()=>{ btn.classList.remove('recording'); btn.classList.add('ready'); btn.textContent='● Aufnehmen'; };
+  rec.onerror=reset; rec.onend=reset;
+}
+function refreshStatsOnCard(card, id){
+  const stats=getPhraseStats(id);
+  card.querySelector('.st-last').textContent = stats.last!=null ? ('Letzter: '+stats.last+'%') : 'Letzter: —';
+  card.querySelector('.st-avg10').textContent= stats.avg10!=null ? ('Ø(10): '+stats.avg10+'%') : 'Ø(10): —';
+  card.querySelector('.st-count').textContent = 'Versuche: ' + stats.count;
+}
+
+function normalize(s){
+  return String(s).toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s']/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+function levenshtein(a,b){
+  const m=a.length,n=b.length,dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0]=i; for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++){ for(let j=1;j<=n;j++){
+    const c=a[i-1]===b[j-1]?0:1; dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+c);
+  }} return dp[m][n];
+}
+function wordScore(a,b){
+  const A=normalize(a), B=normalize(b);
+  if(!A && !B) return 100;
+  const dist=levenshtein(A,B);
+  const max=Math.max(A.length,B.length)||1;
+  return Math.round((1 - dist/max)*100);
+}
+function scorePronunciation(expected, said){
+  const expWords=normalize(expected).split(' ').filter(Boolean);
+  const saidWords=normalize(said).split(' ').filter(Boolean);
+  const per=[]; let total=0, count=0;
+
+  for(let i=0;i<expWords.length;i++){
+    const target=expWords[i];
+    // best local match within ±1 window
+    let best=0, match=''; for(let d=-1; d<=1; d++){
+      const idx=i+d; if(idx<0||idx>=saidWords.length) continue;
+      const s=wordScore(target, saidWords[idx]); if(s>best){best=s; match=saidWords[idx];}
+    }
+    let cls='bad'; if(best>=85) cls='ok'; else if(best>=60) cls='mid';
+    if(!match) cls='miss';
+    per.push({text: expWords[i] || '?', score: best, class: cls});
+    if(cls!=='miss'){ total+=best; count++; }
+  }
+  const overall = count? Math.max(0,Math.min(100,Math.round(total/count))) : 0;
+  return {overall, perWord:per};
+}
+
+/* ============== Card events + Auto-TTS ============== */
+function initCardEvents(){
+  $('#results').addEventListener('click', e=>{
+    const sayBtn=e.target.closest('.say');
+    if(sayBtn){
+      const text=sayBtn.getAttribute('data-text')||'';
+      const rate=parseFloat(sayBtn.getAttribute('data-rate')||'1')||1;
+      if('speechSynthesis' in window) speak(text, rate);
+      return;
+    }
+    const recBtn=e.target.closest('.rec');
+    if(recBtn){ startRecognition(recBtn); return; }
+
+    const card=e.target.closest('.card');
+    if(!card) return;
+    if(!state.tts.enabled || !('speechSynthesis' in window)) return;
+    const main=card.querySelector('.txt-main'); const t=main?main.textContent.trim():'';
+    speak(t,1.0);
+  });
+}
+
+/* ==================== TTS voices ==================== */
+function initTTS(){
+  if(!('speechSynthesis' in window)) return;
+  const load=()=>{ state.tts.voices=speechSynthesis.getVoices(); state.tts.ready=true; };
+  load(); speechSynthesis.onvoiceschanged=load;
+}
+
+/* ======================= Boot ======================= */
+function init(){
+  loadLogs();
+  initTTS(); initMic(); initCardEvents(); updateTtsToggle(); loadAll();
+}
+init();
+})();
+</script>
+</body>
+</html>
