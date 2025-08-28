@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="color-scheme" content="dark">
+<title>FamLang – informell, familiär (FR ⇄ DE)</title>
+<style>
+  :root{
+    --bg:#0b0e14; --fg:#f1f5fb; --muted:#b8c0d9;
+    --card:#121624; --ring:#2e3750; --chip:#1a2134;
+    --accent:#5aa9ff; --accent-strong:#2b8cff;
+    --ok:#3ddc91; --warn:#ffd147; --bad:#ff6b6b;
+    --tray:#0f1322; --tray-ring:#34405e; --btn-fg:#eaf1ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+  .wrap{max-width:980px;margin:24px auto;padding:0 16px 140px}
+  header h1{margin:0 0 6px;font-weight:800}
+  header p{margin:4px 0 0;color:var(--muted)}
+
+  /* Common */
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .grow{flex:1}
+  .muted{color:var(--muted);font-size:13px}
+  input,button,select{background:var(--chip);color:var(--btn-fg);border:1px solid var(--ring);border-radius:14px;padding:10px 14px;font-size:15px}
+  button{cursor:pointer}
+  button:hover{background:#222a42}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .bar{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin:18px 0}
+  .search{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:10px 12px}
+  .search input{flex:1;background:transparent;border:0;outline:none;color:var(--fg);font-size:17px}
+
+  .panel{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:12px;margin:20px 0}
+  details.panel>summary{list-style:none;cursor:pointer;font-weight:800;font-size:18px}
+  details[open]>summary{margin-bottom:10px}
+
+  .grid{display:grid;gap:12px;margin:16px 0 36px}
+  @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+
+  .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:16px}
+  .txt-main{font-size:18px;font-weight:700}
+  .txt-sub{font-size:16px;color:#d7dbef}
+  .txt-de{font-size:13px;color:var(--muted);margin-top:8px}
+
+  .pill{background:var(--chip);border:1px solid var(--ring);border-radius:999px;padding:10px 16px;color:var(--btn-fg)}
+  .pill.primary{background:var(--accent-strong);color:#fff}
+  .pill.success{background:var(--ok);color:#072}
+
+  .play-group{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  @media(max-width:520px){.play-group{grid-template-columns:1fr}}
+
+  .scorebar{height:10px;border-radius:6px;background:#2a334f;border:1px solid var(--ring);overflow:hidden;margin-top:8px}
+  .scorebar>i{display:block;height:100%;background:linear-gradient(90deg,var(--bad),#ffb85c,var(--ok));width:0%}
+
+  /* News / Audio – responsive, tidy */
+  .speed-group{display:flex;gap:8px;flex-wrap:wrap}
+  .preset-grid{display:grid;gap:10px;margin-top:10px}
+  .preset{
+    display:grid;gap:8px;
+    grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto auto;
+    align-items:center;
+  }
+  .preset input{width:100%}
+  .preset button{white-space:nowrap}
+  /* stack on small screens */
+  @media(max-width:760px){
+    .preset{grid-template-columns:1fr}
+    .preset .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .preset button{width:100%}
+  }
+  .links{display:grid;gap:8px;margin-top:12px}
+  .links a{color:#bfe0ff;text-decoration:none}
+  .links a:hover{text-decoration:underline}
+
+  /* floating tray */
+  .tray{position:fixed;left:0;right:0;bottom:0;background:var(--tray);border-top:1px solid var(--tray-ring);box-shadow:0 -8px 24px rgba(0,0,0,.35);padding:10px 16px;z-index:9999}
+  .tray .inner{max-width:980px;margin:0 auto;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .tray .status{align-self:center;color:var(--muted)}
+  .empty{margin:24px 0;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>FamLang – informell, familiär <small style="font-weight:500;color:var(--muted)">(FR ⇄ DE)</small></h1>
+    <p>Französisch als Hauptsprache, deutsche Übersetzung als Hilfe. Alles läuft lokal im Browser.</p>
+  </header>
+
+  <details class="panel" open>
+    <summary>Steuerung & Übersicht</summary>
+    <div class="bar">
+      <div class="search"><input id="q" type="search" placeholder="Suche (FR/DE)…"><button id="mic">Mikrofon</button></div>
+    </div>
+    <div class="row">
+      <select id="category"><option value="">Alle Kategorien</option></select>
+      <button id="show-today">Heute</button>
+      <button id="show-all">Alle</button>
+      <button id="show-packs">Packs</button>
+      <button id="tts-toggle">Auto-TTS: Aus</button>
+    </div>
+    <div id="stats" class="muted" style="margin-top:10px"></div>
+  </details>
+
+  <details class="panel" open>
+    <summary>News / Audio auf Französisch</summary>
+
+    <div class="row">
+      <input id="news-url" class="grow" placeholder="MP3/Stream URL (Podcast, Bulletin, RFI …)">
+      <button id="news-play">► Play</button>
+      <button id="news-stop">■ Stop</button>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <div class="speed-group">
+        <span class="muted" style="align-self:center">Geschwindigkeit</span>
+        <button class="speed" data-rate="0.85">0.85×</button>
+        <button class="speed" data-rate="1.0">1.0×</button>
+        <button class="speed" data-rate="1.15">1.15×</button>
+        <button class="speed" data-rate="1.30">1.30×</button>
+        <button id="news-back20">Letzte 20 s</button>
+      </div>
+    </div>
+
+    <div class="muted" style="margin-top:8px">
+      Wenn der Link keine Audio-Datei ist (z. B. Podcast-Seite), öffnet sich die Seite in einem neuen Tab. Kopiere dort den MP3-Link.
+    </div>
+
+    <!-- Presets (responsive grid) -->
+    <div class="preset-grid" id="presets">
+      <div class="preset">
+        <input id="p1-title" value="RFI – Journal en français facile" placeholder="Preset 1 Titel">
+        <input id="p1-url"   value="https://www.rfi.fr/fr/podcasts/journal-en-fran%C3%A7ais-facile/" placeholder="Preset 1 URL">
+        <div class="btns"><button data-slot="1" class="preset-save">Speichern</button></div>
+        <div class="btns"><button data-slot="1" class="preset-play">Play / Öffnen</button></div>
+      </div>
+      <div class="preset">
+        <input id="p2-title" value="franceinfo – Le journal" placeholder="Preset 2 Titel">
+        <input id="p2-url"   value="https://www.radiofrance.fr/franceinfo/podcasts/le-journal-de-8h" placeholder="Preset 2 URL">
+        <div class="btns"><button data-slot="2" class="preset-save">Speichern</button></div>
+        <div class="btns"><button data-slot="2" class="preset-play">Play / Öffnen</button></div>
+      </div>
+      <div class="preset">
+        <input id="p3-title" value="ARTE Radio – Podcasts" placeholder="Preset 3 Titel">
+        <input id="p3-url"   value="https://www.arteradio.com/podcast" placeholder="Preset 3 URL">
+        <div class="btns"><button data-slot="3" class="preset-save">Speichern</button></div>
+        <div class="btns"><button data-slot="3" class="preset-play">Play / Öffnen</button></div>
+      </div>
+      <div class="preset">
+        <input id="p4-title" value="Demo MP3 (Test)" placeholder="Preset 4 Titel">
+        <input id="p4-url"   value="https://upload.wikimedia.org/wikipedia/commons/4/4e/Fr-Paris.ogg" placeholder="Preset 4 URL">
+        <div class="btns"><button data-slot="4" class="preset-save">Speichern</button></div>
+        <div class="btns"><button data-slot="4" class="preset-play">Play / Öffnen</button></div>
+      </div>
+    </div>
+
+    <div class="links">
+      <div class="muted">Schnell-Links (Tippen öffnet die Seite / setzt URL, falls Direkt-Audio):</div>
+      <a href="#" data-url="https://www.rfi.fr/fr/podcasts/journal-en-fran%C3%A7ais-facile/">RFI – Journal en français facile</a>
+      <a href="#" data-url="https://www.radiofrance.fr/franceinfo/podcasts">franceinfo – Podcast-Übersicht</a>
+      <a href="#" data-url="https://www.franceculture.fr/podcasts">France Culture – Podcasts</a>
+      <a href="#" data-url="https://www.arteradio.com/podcast">ARTE Radio – Podcasts</a>
+      <a href="#" data-url="https://www.tv5monde.com/fr/decouvrir/podcasts">TV5MONDE – Podcasts</a>
+      <a href="#" data-url="https://upload.wikimedia.org/wikipedia/commons/4/4e/Fr-Paris.ogg">Wikimedia – Französisches Sample (Direkt-Audio, Test)</a>
+    </div>
+
+    <audio id="news-audio" preload="none" crossorigin="anonymous"></audio>
+  </details>
+
+  <div id="results" class="grid"></div>
+  <div id="empty" class="empty" hidden>Keine Einträge gefunden.</div>
+</div>
+
+<!-- floating tray -->
+<div class="tray" aria-live="polite">
+  <div class="inner">
+    <button id="stop" class="pill" style="background:#b64b4b;color:#fff">■ Stop</button>
+    <button id="next" class="pill primary">▶ Nächste</button>
+    <span class="status" id="shadow-status">Shadow inaktiv</span>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $  = (s,r=document)=>r.querySelector(s);
+  const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+
+  /* demo items (keep your real loader if you have one) */
+  const data = [
+    {fr:"Merci d'être venu(e) !", de:"Danke fürs Kommen!"},
+    {fr:"Tu me tiens au courant ?", de:"Meldest du dich?"},
+    {fr:"On fait ça ensemble.", de:"Das machen wir zusammen."}
+  ];
+  const state = { items:data };
+
+  function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
+  function attr(s){return esc(s).replace(/`/g,'&#96;');}
+  const norm = s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z\' ]/g,' ').replace(/\s+/g,' ').trim();
+  function score(a,b){ if(!a||!b) return 0; const wa=a.split(' '), wb=b.split(' '); let hit=0; wa.forEach(w=>{ if(wb.includes(w)) hit++; }); return Math.round(100*hit/wa.length); }
+
+  function render(){
+    const list = $('#results'); list.innerHTML='';
+    if(!state.items.length){ $('#empty').hidden=false; return; }
+    $('#empty').hidden=true;
+    state.items.forEach(item=>{
+      const c=document.createElement('div'); c.className='card';
+      c.innerHTML=`
+        <div class="txt-main">${esc(item.fr)}</div>
+        <div class="txt-sub">DE: ${esc(item.de)}</div>
+        <div class="play-group">
+          <button class="pill play" data-text="${attr(item.fr)}" data-rate="1">Abspielen</button>
+          <button class="pill play" data-text="${attr(item.fr)}" data-rate="0.9">Langsam</button>
+          <button class="pill play" data-text="${attr(item.fr)}" data-rate="0.7">Sehr langsam</button>
+        </div>
+        <button class="pill success rec" data-text="${attr(item.fr)}">Aufnehmen</button>
+        <div class="scorebar"><i></i></div>
+        <div class="muted" style="margin-top:6px" data-role="heard"></div>
+      `;
+      list.appendChild(c);
+    });
+  }
+
+  /* TTS & SR */
+  function speak(text, rate=1){
+    try{
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='fr-FR'; u.rate=rate;
+      speechSynthesis.speak(u);
+    }catch{}
+  }
+  function startRec(card, expect){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ alert('Spracherkennung nicht verfügbar.'); return; }
+    const rec=new SR(); rec.lang='fr-FR'; rec.interimResults=false; rec.continuous=false;
+    const bar=card.querySelector('.scorebar i'); const out=card.querySelector('[data-role="heard"]');
+    out.textContent='… hört zu …';
+    try{ rec.start(); }catch{}
+    rec.onresult=(e)=>{
+      const said=Array.from(e.results).map(r=>r[0].transcript).join(' ');
+      const acc=score(norm(expect),norm(said));
+      out.innerHTML=`<b>Verstanden:</b> ${esc(said)} &nbsp;(<span>${acc}%</span>)`;
+      bar.style.width=acc+'%';
+    };
+    rec.onerror=()=>{ out.textContent='Fehler bei der Aufnahme'; };
+    rec.onend=()=>{ if(out.textContent==='… hört zu …') out.textContent='—'; };
+  }
+
+  $('#results').addEventListener('click', e=>{
+    if(e.target.classList.contains('play')){
+      speak(e.target.dataset.text, parseFloat(e.target.dataset.rate||'1'));
+    }
+    if(e.target.classList.contains('rec')){
+      startRec(e.target.closest('.card'), e.target.dataset.text);
+    }
+  });
+
+  /* Search */
+  $('#q').addEventListener('input', e=>{
+    const q=norm(e.target.value); state.items=data.filter(x=>norm(x.fr+' '+x.de).includes(q)); render();
+  });
+
+  /* Next / Stop */
+  $('#next').addEventListener('click', ()=>{
+    const cards=$$('.card'); if(!cards.length) return;
+    const y=window.scrollY+100; let idx=cards.findIndex(c=>c.offsetTop>y); if(idx===-1) idx=0;
+    const t=cards[idx]; t.scrollIntoView({behavior:'smooth',block:'center'});
+    const btn=t.querySelector('.play[data-rate="1"]'); if(btn) setTimeout(()=>btn.click(),450);
+  });
+  $('#stop').addEventListener('click', ()=>{
+    try{ speechSynthesis.cancel(); }catch{}
+    const a=$('#news-audio'); if(a && !a.paused){ try{ a.pause(); }catch{} }
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  /* News/Audio */
+  const audio=$('#news-audio'); let currentRate=1.0;
+  const isAudioUrl=url=>/\.(mp3|m4a|aac|ogg|oga|opus|wav)(\?|$)/i.test(url);
+  function playFrom(url){
+    if(!url){ alert('Bitte MP3/Stream-URL einfügen'); return; }
+    if(!isAudioUrl(url)){ window.open(url,'_blank'); $('#news-url').value=url; return; }
+    try{ audio.src=url; audio.playbackRate=currentRate; audio.play().catch(()=>alert('Konnte Audio nicht abspielen (CORS/URL prüfen).')); }catch{}
+  }
+  $('#news-play').addEventListener('click', ()=> playFrom($('#news-url').value.trim()));
+  $('#news-stop').addEventListener('click', ()=>{ try{ audio.pause(); }catch{} });
+  $('#news-back20').addEventListener('click', ()=>{ try{ audio.currentTime=Math.max(0,(audio.currentTime||0)-20); }catch{} });
+  $$('.speed').forEach(b=>b.addEventListener('click', ()=>{
+    currentRate=parseFloat(b.dataset.rate||'1'); audio.playbackRate=currentRate;
+    $$('.speed').forEach(x=>x.style.outline='none'); b.style.outline='2px solid var(--accent)';
+  }));
+  $$('.links a').forEach(a=>a.addEventListener('click', e=>{
+    e.preventDefault(); const url=a.getAttribute('data-url');
+    if(isAudioUrl(url)) $('#news-url').value=url; else window.open(url,'_blank');
+  }));
+  const loadPresets=()=>{ const p=JSON.parse(localStorage.getItem('ff.presets')||'{}'); for(let i=1;i<=4;i++){ if(p['t'+i]) $('#p'+i+'-title').value=p['t'+i]; if(p['u'+i]) $('#p'+i+'-url').value=p['u'+i]; } };
+  const savePreset=i=>{ const p=JSON.parse(localStorage.getItem('ff.presets')||'{}'); p['t'+i]=$('#p'+i+'-title').value.trim(); p['u'+i]=$('#p'+i+'-url').value.trim(); localStorage.setItem('ff.presets',JSON.stringify(p)); };
+  const playPreset=i=>{ const url=$('#p'+i+'-url').value.trim(); if(!url){ alert('Preset-URL fehlt'); return; } $('#news-url').value=url; playFrom(url); };
+  $$('.preset-save').forEach(b=>b.addEventListener('click',()=>savePreset(b.dataset.slot)));
+  $$('.preset-play').forEach(b=>b.addEventListener('click',()=>playPreset(b.dataset.slot)));
+  loadPresets();
+
+  /* initial render */
+  render();
+})();
+</script>
+</body>
+</html>
