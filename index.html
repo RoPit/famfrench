@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FamLang – FR ⇄ DE Trainer + Lingua Libre</title>
+<style>
+:root{
+  --bg:#0f1117; --panel:#151a26; --card:#171c2a; --ink:#eaf0f7; --mut:#9aa6bd; --ring:#2b3652;
+  --chip:#1c2336; --btn:#202a43; --btnHi:#2a3454; --acc:#77b3ff;
+  --ok:#34d399; --warn:#fbbf24; --bad:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+.wrap{max-width:980px;margin:18px auto 96px;padding:0 14px}
+h1{margin:4px 0 6px;font-weight:800}
+.lead{margin:0 0 10px;color:var(--mut)}
+.panel{background:var(--panel);border:1px solid var(--ring);border-radius:16px;padding:12px;margin:10px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input,select,button{border-radius:14px;border:1px solid var(--ring);background:var(--chip);color:var(--ink);min-height:44px;padding:10px 14px;font-size:15px}
+button{cursor:pointer}
+button:active{transform:scale(.98)}
+.pill{background:var(--btn)} .pill.active,.pill[aria-pressed="true"]{background:var(--btnHi);outline:2px solid var(--acc)}
+.badge{background:var(--chip);border:1px solid var(--ring);border-radius:999px;padding:6px 10px;color:var(--mut);font-size:12px}
+.card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:14px;margin:10px 0}
+.fr{font-size:20px;font-weight:800;margin:0 0 4px}
+.de{color:#dbe5ff;margin:0 0 6px}
+.hint{color:var(--mut);font-size:13px;margin:4px 0 8px}
+.btnrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rec{background:#1f3f30;border-color:#2a6a4e}
+.rec.recording{background:#144b31;outline:2px solid var(--ok)}
+.tokens{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
+.token{border-radius:999px;padding:6px 10px;border:1px solid var(--ring);background:#1b2234}
+.token.ok{background:#123a2a;border-color:#2e6c52}
+.token.mid{background:#3b3217;border-color:#6c5a22}
+.token.bad{background:#3d1f1f;border-color:#6c3a3a}
+.scoreRow{display:flex;align-items:center;gap:10px;margin:6px 0}
+.score{font-weight:800}
+.legend{display:flex;gap:10px;font-size:12px;color:var(--mut)}
+.legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%}
+.trans{border:1px solid var(--ring);background:#101725;border-radius:12px;padding:10px;margin-top:6px}
+.trans h4{margin:0 0 4px;color:var(--mut);font-size:13px}
+.small{font-size:13px;color:var(--mut)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;background:#1a2436;border:1px solid var(--ring);padding:10px 14px;border-radius:12px;z-index:50;display:none}
+.toast.show{display:block}
+.fab{position:fixed;left:0;right:0;bottom:0;background:#0e1320;border-top:1px solid var(--ring);box-shadow:0 -6px 18px rgba(0,0,0,.35);padding:10px 14px;z-index:40}
+.fab .row{justify-content:space-between}
+body{padding-bottom:88px}
+details.extras{border:1px solid var(--ring);border-radius:12px;background:#0f1422}
+details.extras>summary{list-style:none;cursor:pointer;padding:10px 12px}
+details.extras>summary::-webkit-details-marker{display:none}
+.link{color:#bfe1ff;text-decoration:none}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+hr.sep{border:0;height:1px;background:#242e46;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>FamLang – FR ⇄ DE Trainer</h1>
+  <p class="lead">Fokussiert: Hören, nachsprechen, messen. Alles läuft lokal im Browser.</p>
+
+  <!-- Controls -->
+  <section class="panel">
+    <h3 style="margin:0 0 8px">Steuerung & Übersicht</h3>
+    <div class="row">
+      <input id="q" class="pill" style="flex:1" type="search" placeholder="Suche (FR/DE)…" autocomplete="off">
+      <button id="mic" class="pill">Mikrofon</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <select id="category" class="pill" style="flex:1"><option value="">Alle Kategorien</option></select>
+      <button id="btnToday" class="pill">Heute</button>
+      <button id="btnAll" class="pill" aria-pressed="true">Alle</button>
+      <button id="btnPacks" class="pill">Packs</button>
+      <button id="ttsToggle" class="pill">Auto-TTS: Aus</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span id="due" class="badge">0 Karten</span>
+      <span id="bToday" class="badge">Heute: 0</span>
+      <span id="bAvg" class="badge">Ø —% (letzte 10)</span>
+      <span id="bStreakD" class="badge">Tages-Streak: 0🔥</span>
+      <span id="bStreakW" class="badge">Wochen-Streak: 0🔥</span>
+      <span class="badge">Ziel: <b id="goal">30</b></span>
+      <button id="btnExport" class="pill">Log exportieren</button>
+      <button id="btnReset" class="pill">Log zurücksetzen</button>
+    </div>
+  </section>
+
+  <!-- Vocab Mode -->
+  <section class="panel" id="vocabPanel">
+    <h3 style="margin:0 0 8px">Vokabel-Modus</h3>
+    <div class="row" style="margin-bottom:8px">
+      <button id="vocabNext" class="pill">🎲 Zufällig (lokal)</button>
+      <button id="vocabAuto" class="pill">Auto: <b id="vocabAutoState">Aus</b></button>
+      <label class="badge"><input id="vocabUseCat" type="checkbox" style="vertical-align:middle;margin-right:6px"> nur aktuelle Kategorie</label>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <button id="vocabOnline" class="pill">🌐 Zufällig (Online – Lingua Libre)</button>
+      <span id="vocabOnlineNote" class="small">zieht native Aufnahmen von Commons</span>
+    </div>
+    <div id="vocabCard"></div>
+    <audio id="llAudio" preload="none"></audio>
+  </section>
+
+  <!-- Language cards -->
+  <div id="results"></div>
+  <div id="empty" class="small" hidden>Keine Einträge gefunden.</div>
+  <div id="warn" class="small" hidden></div>
+
+  <!-- Extras collapsed -->
+  <section class="panel">
+    <details class="extras">
+      <summary><strong>Extras (optional)</strong> – kurze Hörimpulse in neuem Tab öffnen</summary>
+      <div style="padding:10px 12px">
+        <p class="small">Diese Links öffnen extern und funktionieren zuverlässig.</p>
+        <ul>
+          <li><a class="link" href="https://www.youtube.com/@EasyFrench/" target="_blank" rel="noopener">🎬 Easy French (YouTube Kanal)</a></li>
+          <li><a class="link" href="https://www.rfi.fr/fr/podcasts/journal-en-français-facile/" target="_blank" rel="noopener">🎙️ RFI – Journal en français facile</a></li>
+          <li><a class="link" href="https://www.radiofrance.fr/franceinfo/podcasts" target="_blank" rel="noopener">🎙️ franceinfo – Podcasts</a></li>
+          <li><a class="link" href="https://www.radiofrance.fr/franceinter/podcasts" target="_blank" rel="noopener">🎙️ France Inter – Podcasts</a></li>
+        </ul>
+      </div>
+    </details>
+  </section>
+</div>
+
+<!-- Floating controls -->
+<div class="fab">
+  <div class="row">
+    <div class="row">
+      <button id="btnStop" class="pill" style="background:#4a1e22;border-color:#6b2c32">■ Stop</button>
+      <button id="btnNext" class="pill">► Nächste</button>
+    </div>
+    <div class="row">
+      <button id="shadowToggle" class="pill">Shadow inaktiv</button>
+      <button id="advToggle" class="pill">Auto-Advance: <b id="advState">Aus</b></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(() => {
+// ---------- helpers
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const BASE=new URL('./',location.href);
+const urlFor=p=>new URL(p,BASE).toString();
+const toast=(m,ms=1600)=>{const t=$("#toast"); t.textContent=m; t.classList.add('show'); clearTimeout(toast._); toast._=setTimeout(()=>t.classList.remove('show'),ms);};
+const fetchJson=async(p)=>{const r=await fetch(urlFor(p),{cache:'no-store'}); if(!r.ok) throw new Error(p+': '+r.status); return r.json();};
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));
+
+// ---------- state
+const S={show:'all',category:'',q:'',items:[],cats:new Set(),today:new Set(),tts:{enabled:false,voices:[]},auto:false,shadow:false,current:null,log:loadLog(),goal:30};
+const V={ pool:[], used:new Set(), auto:false, onlineCache:[] }; // Vokabel-Modus
+
+// ---------- log / streaks
+function loadLog(){ try{ return JSON.parse(localStorage.getItem('fam_log_v2')||'[]'); }catch{ return []; } }
+function saveLog(){ localStorage.setItem('fam_log_v2', JSON.stringify(S.log.slice(-800))); }
+function pushLog(entry){ S.log.push(entry); saveLog(); updateStats(); }
+function updateStats(){
+  const todayISO=new Date().toISOString().slice(0,10);
+  const todayCnt=S.log.filter(x=>x.date.startsWith(todayISO)).length;
+  $("#bToday").textContent='Heute: '+todayCnt;
+  const last10=S.log.slice(-10).map(x=>x.score);
+  const avg=last10.length?Math.round(last10.reduce((a,b)=>a+b,0)/last10.length):'—';
+  $("#bAvg").textContent='Ø '+avg+'% (letzte 10)';
+  // daily streak
+  const days=new Set(S.log.map(x=>x.date.slice(0,10)));
+  let st=0; for(let d=new Date(); ; d.setDate(d.getDate()-1)){ const k=d.toISOString().slice(0,10); if(days.has(k)) st++; else break; }
+  $("#bStreakD").textContent='Tages-Streak: '+st+'🔥';
+  // weekly streak (weeks with >= goal attempts)
+  const weeks={};
+  for(const x of S.log){ const d=new Date(x.date); const y=d.getUTCFullYear(); const w=Math.floor((d - new Date(Date.UTC(y,0,1)))/(7*24*3600*1000)); const key=y+'-'+w; weeks[key]=(weeks[key]||0)+1; }
+  let ws=0; for(let i=0;;i++){ const d=new Date(); d.setDate(d.getDate()-7*i); const y=d.getUTCFullYear(); const w=Math.floor((d - new Date(Date.UTC(y,0,1)))/(7*24*3600*1000)); const key=y+'-'+w; if((weeks[key]||0)>=S.goal) ws++; else break; }
+  $("#bStreakW").textContent='Wochen-Streak: '+ws+'🔥';
+  $("#goal").textContent=S.goal;
+}
+$("#btnExport").addEventListener('click',()=>{ const blob=new Blob([JSON.stringify(S.log,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='famlang-log.json'; a.click(); });
+$("#btnReset").addEventListener('click',()=>{ if(confirm('Log wirklich löschen?')){ S.log=[]; saveLog(); updateStats(); } });
+
+// ---------- load packs
+async function loadAll(){
+  try{
+    const manifest=await fetchJson('data/manifest.json');
+    const packs=manifest.packs||[]; S.today=new Set(manifest.todayPacks||[]);
+    const names=manifest.categoryNames||{}, labels=manifest.categoryLabels||{};
+    const settled=await Promise.allSettled(packs.map(async p=>({path:p,raw:await fetchJson(p)})));
+    S.items=[]; S.cats=new Set();
+    for(const r of settled){
+      if(r.status!=='fulfilled') continue;
+      const {path,raw}=r.value;
+      const rows=Array.isArray(raw)?raw:(Array.isArray(raw?.phrases)?raw.phrases:[]);
+      const key=names[path]||(raw&&raw.name)||path.split('/').pop().replace(/\..+$/,'');
+      const label=labels[key]||key;
+      S.cats.add(key);
+      rows.forEach((row,i)=> S.items.push({
+        id:`${path}#${i}`, pack:path, categoryKey:key, categoryLabel:label,
+        fr:String(row.fr||''), de:String(row.de||row.en||''), hint:String(row.hint||''), date:String(row.date||'')
+      }));
+    }
+    buildCatSelect(); render(); vocabBuildPool();
+  }catch(e){ $("#warn").hidden=false; $("#warn").textContent='Fehler beim Laden: '+(e.message||e); }
+}
+function buildCatSelect(){
+  const sel=$("#category"); const cur=sel.value;
+  const keys=[...S.cats].sort();
+  sel.innerHTML='<option value="">Alle Kategorien</option>'+keys.map(k=>{
+    const lab=S.items.find(x=>x.categoryKey===k)?.categoryLabel||k;
+    return `<option value="${esc(k)}">${esc(lab)}</option>`;
+  }).join('');
+  sel.value=cur||'';
+}
+
+// ---------- render cards
+function render(){
+  let view=S.items.slice();
+  if(S.category) view=view.filter(x=>x.categoryKey===S.category);
+  if(S.q){const q=S.q; view=view.filter(x=>(x.fr+x.de).toLowerCase().includes(q));}
+  if(S.show==='today'){
+    const todayISO=new Date().toISOString().slice(0,10);
+    view=view.filter(x=> S.today.size?S.today.has(x.pack):(x.date && x.date.startsWith(todayISO)));
+  }
+  $("#due").textContent = view.length + ' Karten';
+  const list=$("#results"); list.innerHTML='';
+  $("#empty").hidden = !!view.length;
+  for(const it of view){ list.appendChild(card(it)); }
+}
+function card(it){
+  const el=document.createElement('div'); el.className='card'; el.dataset.id=it.id;
+  el.innerHTML=`
+    <div class="row" style="justify-content:space-between">
+      <span class="badge">${esc(it.categoryLabel)}</span>
+      <span class="badge">${esc(it.pack.split('/').pop())}</span>
+    </div>
+    <div class="fr">${esc(it.fr)}</div>
+    <div class="de">DE: ${esc(it.de)}</div>
+    ${it.hint?`<div class="hint">Hinweis: ${esc(it.hint)}</div>`:''}
+    <div class="btnrow">
+      <button class="pill say" data-rate="1">Abspielen</button>
+      <button class="pill say" data-rate="0.9">Langsam</button>
+      <button class="pill say" data-rate="0.75">Sehr langsam</button>
+    </div>
+    <button class="pill rec">● Aufnehmen</button>
+    <div class="scoreRow">
+      <span class="score">—%</span>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--ok)"></span> gut</span>
+        <span><span class="dot" style="background:var(--warn)"></span> ok</span>
+        <span><span class="dot" style="background:var(--bad)"></span> verbessern</span>
+      </div>
+    </div>
+    <div class="tokens"></div>
+    <div class="trans" hidden>
+      <h4>Verstanden</h4>
+      <div class="mono understood"></div>
+      <div class="small">Konfidenz: <span class="conf">—</span></div>
+    </div>
+  `;
+  el.querySelectorAll('.say').forEach(b=> b.addEventListener('click',()=> speak(it.fr, parseFloat(b.dataset.rate||'1')) ));
+  el.querySelector('.rec').addEventListener('click',()=> record(el, it.fr));
+  el.addEventListener('click', e=>{ if(!S.tts.enabled) return; if(e.target.closest('button')) return; speak(it.fr,1); });
+  return el;
+}
+
+// ---------- filters
+$("#q").addEventListener('input', e=>{ S.q=e.target.value.trim().toLowerCase(); render(); vocabBuildPool(); });
+$("#category").addEventListener('change', e=>{ S.category=e.target.value; render(); vocabBuildPool(); });
+$("#btnToday").addEventListener('click', ()=>{ S.show='today'; setModeBtns(); render(); vocabBuildPool(); });
+$("#btnAll").addEventListener('click',   ()=>{ S.show='all';   setModeBtns(); render(); vocabBuildPool(); });
+$("#btnPacks").addEventListener('click', ()=>{ S.show='packs';  setModeBtns(); render(); vocabBuildPool(); });
+function setModeBtns(){
+  $("#btnToday").setAttribute('aria-pressed', S.show==='today');
+  $("#btnAll").setAttribute('aria-pressed',   S.show==='all');
+  $("#btnPacks").setAttribute('aria-pressed', S.show==='packs');
+}
+$("#ttsToggle").addEventListener('click', ()=>{ S.tts.enabled=!S.tts.enabled; $("#ttsToggle").textContent='Auto-TTS: ' + (S.tts.enabled?'An':'Aus'); });
+
+// ---------- TTS
+function initTTS(){
+  if(!('speechSynthesis' in window)) return;
+  const load=()=> S.tts.voices = speechSynthesis.getVoices();
+  load(); speechSynthesis.onvoiceschanged=load;
+}
+function pickVoiceFR(){
+  const vs=S.tts.voices||[];
+  const isG=v=>/google/i.test(v.name||'');
+  const isS=v=>/samsung/i.test(v.name||'');
+  const starts=v=>(v.lang||'').toLowerCase().startsWith('fr');
+  return vs.find(v=>isG(v)&&starts(v)) || vs.find(v=>starts(v)&&!isS(v)) || vs.find(v=>starts(v)) || null;
+}
+function speak(text, rate=1){
+  if(!text) return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text); const v=pickVoiceFR();
+    if(v){ u.voice=v; u.lang=v.lang; } else u.lang='fr-FR';
+    u.rate=rate; u.pitch=1;
+    setTimeout(()=>speechSynthesis.speak(u),80);
+  }catch(e){ toast('TTS Fehler'); }
+}
+
+// ---------- SR + scoring
+function record(card, expectedFR){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toast('Spracherkennung nicht verfügbar'); return; }
+  const btn=card.querySelector('.rec'); btn.classList.add('recording'); btn.textContent='■ Aufnahme…';
+  const rec=new SR(); rec.lang='fr-FR'; rec.interimResults=false; rec.continuous=false;
+  let said=''; let conf=0;
+  try{ rec.start(); }catch{}
+  rec.onresult=e=>{
+    said=Array.from(e.results).map(r=>r[0].transcript).join(' ');
+    conf=Array.from(e.results).reduce((a,r)=>a+(r[0]?.confidence||0),0)/e.results.length||0;
+  };
+  rec.onend=()=>{
+    btn.classList.remove('recording'); btn.textContent='● Aufnehmen';
+    showResult(card, expectedFR, said, conf);
+    if(S.auto && S.shadow) setTimeout(()=> nextCard(), 900);
+  };
+  rec.onerror=()=>{ btn.classList.remove('recording'); btn.textContent='● Aufnehmen'; toast('SR Fehler'); };
+}
+function norm(s){ return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9\s']/g,' ').replace(/\s+/g,' ').trim(); }
+function lev(a,b){ const m=a.length,n=b.length,dp=Array.from({length:m+1},()=>Array(n+1).fill(0)); for(let i=0;i<=m;i++)dp[i][0]=i; for(let j=0;j<=n;j++)dp[0][j]=j; for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){ const c=a[i-1]===b[j-1]?0:1; dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+c);} return dp[m][n]; }
+function showResult(card, expected, saidRaw, conf){
+  const exp=norm(expected), said=norm(saidRaw||'');
+  const dist=lev(exp,said);
+  const score=Math.max(0, Math.round((1 - dist/Math.max(1,exp.length)) * 100));
+  card.querySelector('.score').textContent = score+'%';
+  const toks=card.querySelector('.tokens'); toks.innerHTML='';
+  const eW=exp.split(' '), sW=said.split(' ');
+  eW.forEach(w=>{
+    let best=Infinity; for(const sw of sW){ best=Math.min(best, lev(w,sw)); }
+    const cls = best<=1 ? 'ok' : best<=3 ? 'mid' : 'bad';
+    const span=document.createElement('span'); span.className='token '+cls; span.textContent=w; toks.appendChild(span);
+  });
+  const box=card.querySelector('.trans'); box.hidden=false;
+  card.querySelector('.understood').textContent = saidRaw || '—';
+  card.querySelector('.conf').textContent = Math.round(conf*100)+'%';
+  pushLog({id:card.dataset.id||'online', score, date:new Date().toISOString()});
+}
+
+// ---------- Auto-Advance & shadow
+$("#advToggle").addEventListener('click',()=>{ S.auto=!S.auto; $("#advState").textContent=S.auto?'An':'Aus'; if(S.auto) nextCard(true); });
+$("#shadowToggle").addEventListener('click',()=>{ S.shadow=!S.shadow; $("#shadowToggle").textContent = S.shadow?'Shadow aktiv':'Shadow inaktiv'; });
+$("#btnNext").addEventListener('click',()=> nextCard(true));
+$("#btnStop").addEventListener('click',()=>{ speechSynthesis.cancel(); window.scrollTo({top:0,behavior:'smooth'}); });
+
+function nextCard(startSeq){
+  const cards=$$('#results .card'); if(!cards.length) return;
+  let idx = S.current ? cards.indexOf(S.current)+1 : 0;
+  if(idx>=cards.length) idx=0;
+  S.current=cards[idx];
+  S.current.scrollIntoView({behavior:'smooth',block:'center'});
+  if(startSeq) runSeq(S.current);
+}
+async function runSeq(card){
+  const text=$('.fr',card)?.textContent?.trim()||''; if(!text) return;
+  speak(text,1); await delay(900 + Math.min(2500, text.length*55));
+  speak(text,0.85); await delay(1100 + Math.min(3000, text.length*65));
+  if(S.shadow){ $('.rec',card).click(); await delay(2600); }
+  await delay(800);
+  if(S.auto) nextCard(true);
+}
+function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ---------- Mic → search
+(function mic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ $('#mic').disabled=true; $('#mic').title='Spracherkennung nicht verfügbar'; return; }
+  const rec=new SR(); rec.lang='fr-FR'; rec.interimResults=false; rec.continuous=false; let on=false;
+  $('#mic').addEventListener('click',()=>{ if(on){try{rec.stop();}catch{};return;} on=true; $('#mic').textContent='Stoppen'; try{rec.start();}catch{} });
+  rec.onresult=e=>{ const t=Array.from(e.results).map(r=>r[0].transcript).join(' '); $('#q').value=t; S.q=t.toLowerCase(); render(); vocabBuildPool(); };
+  const reset=()=>{ on=false; $('#mic').textContent='Mikrofon'; };
+  rec.onerror=reset; rec.onend=reset;
+})();
+
+// ---------- Vokabel-Modus (lokal)
+function vocabBuildPool(){
+  let arr=S.items.slice();
+  if ($('#vocabUseCat')?.checked && S.category) arr=arr.filter(x=>x.categoryKey===S.category);
+  if (S.show==='today'){
+    const todayISO=new Date().toISOString().slice(0,10);
+    arr=arr.filter(x=> S.today.size?S.today.has(x.pack):(x.date && x.date.startsWith(todayISO)));
+  }
+  V.pool=arr; V.used.clear();
+}
+function vocabNextLocal(){
+  if(!V.pool.length){ vocabBuildPool(); }
+  if(!V.pool.length){ toast('Keine Einträge'); return; }
+  let cand=V.pool.filter(x=>!V.used.has(x.id));
+  if(!cand.length){ V.used.clear(); cand=V.pool.slice(); }
+  const item=cand[Math.floor(Math.random()*cand.length)];
+  V.used.add(item.id);
+  renderVocabCard({type:'local', fr:item.fr, de:item.de, hint:item.hint, pack:item.pack, categoryLabel:item.categoryLabel});
+}
+$("#vocabNext").addEventListener('click',vocabNextLocal);
+$("#vocabAuto").addEventListener('click',()=>{ V.auto=!V.auto; $("#vocabAutoState").textContent=V.auto?'An':'Aus'; if(V.auto) vocabNextLocal(); });
+$("#vocabUseCat").addEventListener('change',vocabBuildPool);
+
+// ---------- Vokabel-Modus (Online – Lingua Libre via Commons)
+async function vocabNextOnline(){
+  try{
+    if(!V.onlineCache.length){
+      const url='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=categorymembers&gcmtitle=Category:Lingua_Libre_pronunciations_in_French&gcmlimit=50&prop=imageinfo&iiprop=url|user|timestamp|mime';
+      const res=await fetch(url); if(!res.ok) throw new Error('Commons '+res.status);
+      const data=await res.json();
+      const pages=data?.query?.pages||{};
+      const items=Object.values(pages).map(p=>{
+        const info=p.imageinfo?.[0]; if(!info?.url) return null;
+        const title=p.title||''; // e.g. File:LL-Q150 (fra)-User-mot.ogg
+        let word=title.replace(/^File:/,'').replace(/\.[^.]+$/,'');
+        // extract last dash segment as the word, restore spaces/accents where possible
+        if(word.includes('-')) word = word.split('-').slice(-1)[0];
+        word = word.replace(/_/g,' ').trim();
+        return { title, url:info.url, word };
+      }).filter(Boolean);
+      V.onlineCache=items;
+    }
+    if(!V.onlineCache.length){ toast('Keine Online-Treffer'); return; }
+    const pick = V.onlineCache[Math.floor(Math.random()*V.onlineCache.length)];
+    renderVocabCard({type:'online', fr:pick.word, de:'', hint:'Lingua Libre Aufnahme', audio:pick.url, source:pick.title});
+  }catch(e){
+    console.error(e);
+    toast('Online-Abruf fehlgeschlagen');
+  }
+}
+$("#vocabOnline").addEventListener('click',vocabNextOnline);
+
+// common renderer for both vocab modes
+function renderVocabCard(payload){
+  const box=$("#vocabCard"); const isOnline=payload.type==='online';
+  const deBlock = payload.de ? `<div class="de" id="vocabDE">DE: ${esc(payload.de)}</div>` : `<div class="de" id="vocabDE" style="display:none">—</div>`;
+  box.innerHTML = `
+    <div class="card" data-id="${esc(payload.source||'vocab')}">
+      <div class="row" style="justify-content:space-between">
+        <span class="badge">${esc(payload.categoryLabel|| (isOnline?'Online':'Lokal'))}</span>
+        ${isOnline ? `<a class="badge" href="https://fr.wiktionary.org/wiki/${encodeURIComponent(payload.fr)}" target="_blank" rel="noopener">Wiktionary ↗</a>` : `<span class="badge">${esc(payload.pack?payload.pack.split('/').pop():'')}</span>`}
+      </div>
+      <div class="fr">${esc(payload.fr)}</div>
+      ${deBlock}
+      ${payload.hint?`<div class="hint">${esc(payload.hint)}</div>`:''}
+      <div class="row" style="margin:6px 0">
+        <button class="pill" id="vocabReveal">Bedeutung zeigen</button>
+        ${isOnline? `<button class="pill" id="llPlay">▶ Native (LL)</button>`:''}
+      </div>
+      <div class="btnrow">
+        <button class="pill" id="vPlay">Abspielen</button>
+        <button class="pill" id="vSlow">Langsam</button>
+        <button class="pill" id="vVSlow">Sehr langsam</button>
+      </div>
+      <button class="pill rec" id="vRec">● Aufnehmen</button>
+      <div class="scoreRow">
+        <span class="score">—%</span>
+        <div class="legend">
+          <span><span class="dot" style="background:var(--ok)"></span> gut</span>
+          <span><span class="dot" style="background:var(--warn)"></span> ok</span>
+          <span><span class="dot" style="background:var(--bad)"></span> verbessern</span>
+        </div>
+      </div>
+      <div class="tokens"></div>
+      <div class="trans" hidden>
+        <h4>Verstanden</h4>
+        <div class="mono understood"></div>
+        <div class="small">Konfidenz: <span class="conf">—</span></div>
+      </div>
+    </div>
+  `;
+  // wire
+  $('#vocabReveal').onclick=()=>{ const el=$('#vocabDE'); if(el) el.style.display='block'; };
+  $('#vPlay').onclick = ()=> speak(payload.fr,1);
+  $('#vSlow').onclick = ()=> speak(payload.fr,0.9);
+  $('#vVSlow').onclick= ()=> speak(payload.fr,0.75);
+  $('#vRec').onclick  = ()=> record($('#vocabCard .card'), payload.fr);
+  if(isOnline && payload.audio){
+    $('#llPlay').onclick = ()=>{
+      const a=$("#llAudio"); try{ a.pause(); a.src=''; a.src=payload.audio; a.play().catch(()=>toast('Audio blockiert')); }catch{}
+    };
+  }
+  // immediate play for perception
+  speak(payload.fr,1);
+  // auto loop (vocab auto)
+  if(V.auto){ vocabAutoSequence($('#vocabCard .card'), payload.fr); }
+}
+async function vocabAutoSequence(card, text){
+  speak(text,1); await sleep(700 + Math.min(2200, text.length*55));
+  speak(text,0.85); await sleep(900 + Math.min(2600, text.length*60));
+  if(S.shadow){ $('#vRec').click(); await sleep(2400); }
+  await sleep(700);
+  if(V.auto){ // if the last was online, keep online; else local
+    if ($('#vocabOnlineNote').dataset.last==='online') vocabNextOnline(); else vocabNextLocal();
+  }
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ---------- Auto-Advance / shadow for main deck
+$("#advToggle").addEventListener('click',()=>{ S.auto=!S.auto; $("#advState").textContent=S.auto?'An':'Aus'; if(S.auto) nextCard(true); });
+$("#shadowToggle").addEventListener('click',()=>{ S.shadow=!S.shadow; $("#shadowToggle").textContent = S.shadow?'Shadow aktiv':'Shadow inaktiv'; });
+$("#btnNext").addEventListener('click',()=> nextCard(true));
+$("#btnStop").addEventListener('click',()=>{ speechSynthesis.cancel(); window.scrollTo({top:0,behavior:'smooth'}); });
+
+// ---------- search mode buttons
+function setModeBtns(){
+  $("#btnToday").setAttribute('aria-pressed', S.show==='today');
+  $("#btnAll").setAttribute('aria-pressed',   S.show==='all');
+  $("#btnPacks").setAttribute('aria-pressed', S.show==='packs');
+}
+
+// ---------- init TTS + data + stats
+function initVoices(){ if(!('speechSynthesis' in window)) return; const up=()=>S.tts.voices=speechSynthesis.getVoices(); up(); speechSynthesis.onvoiceschanged=up; }
+initVoices(); updateStats(); setModeBtns(); loadAll();
+
+// ---------- Vocab button remember last source
+$('#vocabOnline').addEventListener('click',()=>{ $('#vocabOnlineNote').dataset.last='online'; });
+$('#vocabNext').addEventListener('click',()=>{ $('#vocabOnlineNote').dataset.last='local'; });
+
+// ---------- Mic → search already wired above
+
+})();
+</script>
+</body>
+</html>
