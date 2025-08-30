@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FamLang – informell, familiär (FR ⇄ DE)</title>
+<style>
+  :root{
+    --bg:#0f1117;--fg:#e7ecf2;--muted:#9aa3b2;--card:#151a22;--ring:#2a3242;
+    --chip:#202636;--accent:#5aa9ff;--ok:#2ecc71;--warn:#f1c40f;--bad:#e74c3c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif}
+  .wrap{max-width:900px;margin:18px auto;padding:0 14px}
+  h1{margin:8px 0 6px;font-weight:800;letter-spacing:.2px}
+  p.lead{margin:0 0 16px;color:var(--muted)}
+  .panel{background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:14px;margin:12px 0;box-shadow:0 1px 0 rgba(0,0,0,.25)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .pill{background:var(--chip);border:1px solid var(--ring);color:var(--fg);border-radius:12px;padding:10px 14px;min-height:44px;font-size:15px}
+  .pill[aria-pressed="true"], .pill.primary{outline:2px solid var(--accent)}
+  input,select{background:var(--chip);border:1px solid var(--ring);color:var(--fg);border-radius:12px;padding:12px 14px;min-height:44px}
+  input[type="search"]{flex:1}
+  .grid{display:grid;grid-template-columns:1fr;gap:10px}
+  .card{background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:14px}
+  .cat{display:inline-flex;gap:6px;align-items:center;background:var(--chip);border:1px solid var(--ring);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--muted)}
+  .fr{font-size:18px;font-weight:800;margin:6px 0 4px}
+  .de{font-size:15px;color:#d6dbef;margin:0 0 8px}
+  .hint{color:var(--muted);font-size:12px;margin:2px 0 8px}
+  .btnrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+  .play{background:#1c2735}
+  .slow{background:#1e2a3a}
+  .veryslow{background:#1f2e42}
+  .record{background:#1f3a2a}
+  .record.ready{outline:2px solid var(--ok)}
+  .scoreBar{height:8px;border-radius:6px;background:#263145;overflow:hidden}
+  .scoreBar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--bad),#f39c12,#27ae60);transition:width .25s}
+  .tokens{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+  .tok{padding:4px 10px;border-radius:999px;border:1px solid var(--ring);background:#1b2332}
+  .tok.g{background:#0f2e21;border-color:#1b5; }
+  .tok.y{background:#2a2615;border-color:#db3; }
+  .tok.r{background:#2a1717;border-color:#c44; }
+  .understood{background:#10161f;border:1px dashed var(--ring);border-radius:10px;padding:10px;margin-top:8px}
+  .small{font-size:12px;color:var(--muted)}
+  .badge{padding:6px 10px;border-radius:999px;background:#1a2130;border:1px solid var(--ring)}
+  .footerSpace{height:72px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>FamLang – informell, familiär <small style="font-weight:500;color:var(--muted)">(FR ⇄ DE)</small></h1>
+  <p class="lead">Französisch als Hauptsprache, deutsche Übersetzung als Hilfe. Alles läuft lokal im Browser.</p>
+
+  <!-- Steuerung -->
+  <section class="panel">
+    <div class="row">
+      <input id="q" type="search" placeholder="Suche (FR/DE)…">
+      <button id="mic" class="pill">Mikrofon</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <select id="category"><option value="">Alle Kategorien</option></select>
+      <button id="btnToday" class="pill">Heute</button>
+      <button id="btnAll" class="pill" aria-pressed="true">Alle</button>
+      <button id="btnPacks" class="pill">Packs</button>
+      <button id="ttsToggle" class="pill">Auto-TTS: Aus</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <span class="badge">Heute: <span id="statToday">0</span></span>
+      <span class="badge">Ø (letzte 10): <span id="statAvg">–%</span></span>
+      <span class="badge">Tages-Streak: <span id="streakDay">0🔥</span></span>
+      <span class="badge">Wochen-Streak: <span id="streakWeek">0🔥</span></span>
+    </div>
+  </section>
+
+  <!-- Vokabel-Modus -->
+  <section class="panel" id="vocabPanel">
+    <h3 style="margin:0 0 8px">Vokabel-Modus</h3>
+    <div class="row">
+      <button id="vocabLocal" class="pill">🎲 Zufällig (lokal)</button>
+      <button id="vocabAuto" class="pill">Auto: Aus</button>
+      <label class="row small" style="gap:8px">
+        <input id="vocabOnlyCat" type="checkbox"> nur aktuelle Kategorie
+      </label>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="vocabOnline" class="pill">🌐 Zufällig (Online – Lingua Libre)</button>
+      <span class="small">zieht native Aufnahmen von Wikimedia Commons</span>
+    </div>
+  </section>
+
+  <!-- Easy French / external -->
+  <section class="panel" id="easyFrenchPanel">
+    <h3 style="margin:0 0 8px">Kurze Hörimpulse (extern)</h3>
+    <div class="row">
+      <a class="pill" href="https://www.youtube.com/@EasyFrench/" target="_blank" rel="noopener">🎬 Easy French (YouTube)</a>
+      <a class="pill" href="https://www.rfi.fr/fr/podcasts/journal-en-fran%C3%A7ais-facile/" target="_blank" rel="noopener">🎙️ RFI – Journal facile</a>
+      <a class="pill" href="https://www.radiofrance.fr/franceinfo/podcasts" target="_blank" rel="noopener">🎙️ franceinfo Podcasts</a>
+      <a class="pill" href="https://www.radiofrance.fr/franceinter/podcasts" target="_blank" rel="noopener">🎙️ France Inter Podcasts</a>
+    </div>
+    <p class="small">Hinweis: Öffnet in neuem Tab – zuverlässig auf Mobilgeräten.</p>
+  </section>
+
+  <!-- Ergebnisse -->
+  <div id="list" class="grid"></div>
+  <div id="empty" class="small" style="text-align:center;margin:16px 0;display:none">Keine Einträge gefunden.</div>
+
+  <div class="footerSpace"></div>
+</div>
+
+<script>
+(()=>{
+  // ---------- helpers
+  const $= (s, r=document)=>r.querySelector(s);
+  const $$=(s, r=document)=>Array.from(r.querySelectorAll(s));
+  const BASE = new URL('./', location.href);
+  const urlFor = p => new URL(p, BASE).toString();
+  const fetchJson = async p => { const r=await fetch(urlFor(p),{cache:'no-store'}); if(!r.ok) throw new Error(p+': '+r.status); return r.json(); };
+  const escapeHTML = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // ---------- state
+  const S = {
+    primary:'fr', secondary:'de',
+    show:'all', q:'', category:'',
+    items:[], categories:new Set(), todaySet:new Set(),
+    tts:{enabled:false,voices:[],ready:false,pref:'google'},
+    log: JSON.parse(localStorage.getItem('famlog')||'{"attempts":0,"scores":[]}'),
+    onlineCache:[], vocabAuto:false
+  };
+
+  // ---------- UI init
+  $('#btnAll').addEventListener('click',()=>setShow('all'));
+  $('#btnToday').addEventListener('click',()=>setShow('today'));
+  $('#btnPacks').addEventListener('click',()=>setShow('packs'));
+  $('#ttsToggle').addEventListener('click',()=>{S.tts.enabled=!S.tts.enabled; updateTtsToggle();});
+  $('#category').addEventListener('change',e=>{S.category=e.target.value; render();});
+  $('#q').addEventListener('input',e=>{S.q=e.target.value.trim().toLowerCase(); render();});
+
+  function setShow(m){
+    S.show=m;
+    $('#btnAll').setAttribute('aria-pressed', m==='all');
+    $('#btnToday').setAttribute('aria-pressed', m==='today');
+    $('#btnPacks').setAttribute('aria-pressed', m==='packs');
+    render();
+  }
+  function updateTtsToggle(){
+    const b=$('#ttsToggle');
+    b.textContent = S.tts.enabled? 'Auto-TTS: An' : 'Auto-TTS: Aus';
+    b.setAttribute('aria-pressed', S.tts.enabled);
+  }
+
+  // ---------- load data
+  async function bootLoad(){
+    try{
+      const manifest = await fetchJson('data/manifest.json');
+      const packs = Array.isArray(manifest.packs)? manifest.packs : [];
+      S.todaySet = new Set(Array.isArray(manifest.todayPacks)? manifest.todayPacks : []);
+      const names  = manifest.categoryNames || {};
+      const labels = manifest.categoryLabels || {};
+      const order  = Array.isArray(manifest.categoryOrder)? manifest.categoryOrder : [];
+
+      const res = await Promise.allSettled(packs.map(async p=>({p, raw:await fetchJson(p)})));
+      S.items=[]; S.categories=new Set();
+      for(const r of res){
+        if(r.status!=='fulfilled') continue;
+        const path=r.value.p, raw=r.value.raw;
+        const rows = Array.isArray(raw)? raw : (Array.isArray(raw?.phrases)? raw.phrases : []);
+        const key  = names[path] || raw?.name || path.split('/').pop().replace(/\..+/,'');
+        const label= labels[key] || key;
+        S.categories.add(key);
+        rows.forEach((row,i)=>S.items.push({
+          id:path+'#'+i, categoryKey:key, categoryLabel:label, pack:path,
+          fr:String(row.fr||''), de:String(row.de||row.en||''), hint:String(row.hint||''), date:String(row.date||'')
+        }));
+      }
+      // build category select
+      const sel=$('#category');
+      const keys = Array.from(S.categories);
+      const ordered=[...order.filter(k=>keys.includes(k)), ...keys.filter(k=>!order.includes(k)).sort()];
+      sel.innerHTML='<option value="">Alle Kategorien</option>' + ordered.map(k=>{
+        const any=S.items.find(x=>x.categoryKey===k); const label=any?any.categoryLabel:k;
+        return `<option value="${escapeHTML(k)}">${escapeHTML(label)}</option>`;
+      }).join('');
+      render();
+    }catch(e){ console.error(e); $('#empty').style.display='block'; $('#empty').textContent='Fehler beim Laden.'; }
+  }
+
+  // ---------- render list/cards
+  function render(){
+    let view=S.items.slice();
+    if(S.category) view=view.filter(x=>x.categoryKey===S.category);
+    if(S.q){
+      const q=S.q;
+      view=view.filter(x=>(x.fr+x.de).toLowerCase().includes(q) || (x.categoryLabel||'').toLowerCase().includes(q));
+    }
+    if(S.show==='today'){
+      const todayISO=new Date().toISOString().slice(0,10);
+      view=view.filter(x=> S.todaySet.size? S.todaySet.has(x.pack) : (x.date && x.date.startsWith(todayISO)));
+    }
+    const list=$('#list'); list.innerHTML='';
+    if(!view.length){ $('#empty').style.display='block'; return; } else $('#empty').style.display='none';
+
+    const frag=document.createDocumentFragment();
+    if(S.show==='packs'){
+      view.sort((a,b)=>a.pack.localeCompare(b.pack)||a.id.localeCompare(b.id));
+      let cur=''; 
+      for(const it of view){
+        if(it.pack!==cur){ cur=it.pack; const h=document.createElement('h3'); h.className='small'; h.textContent=cur.split('/').pop(); frag.appendChild(h); }
+        frag.appendChild(makeCard(it));
+      }
+    }else{
+      view.forEach(it=>frag.appendChild(makeCard(it)));
+    }
+    list.appendChild(frag);
+  }
+
+  function makeCard(item){
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML = `
+      <div class="row" style="justify-content:space-between">
+        <span class="cat">${escapeHTML(item.categoryLabel)}</span>
+        <span class="cat">${escapeHTML(item.pack.split('/').pop())}</span>
+      </div>
+      <div class="fr">${escapeHTML(item.fr)}</div>
+      <div class="de">DE: ${escapeHTML(item.de)}</div>
+      ${item.hint? `<div class="hint">Hinweis: ${escapeHTML(item.hint)}</div>`:''}
+      <div class="btnrow">
+        <button class="pill play">Abspielen</button>
+        <button class="pill slow">Langsam</button>
+        <button class="pill veryslow">Sehr langsam</button>
+      </div>
+      <button class="pill record">● Aufnehmen</button>
+      <div class="scoreBar" aria-hidden="true"><span></span></div>
+      <div class="tokens"></div>
+      <div class="understood small" style="display:none"></div>
+    `;
+    // events
+    card.querySelector('.play').onclick = ()=>speak(item.fr,'fr-FR',1);
+    card.querySelector('.slow').onclick = ()=>speak(item.fr,'fr-FR',0.85);
+    card.querySelector('.veryslow').onclick = ()=>speak(item.fr,'fr-FR',0.70);
+    card.querySelector('.record').onclick = ()=>startRec(card, item.fr);
+    if(S.tts.enabled) speak(item.fr,'fr-FR',1);
+    return card;
+  }
+
+  // ---------- TTS
+  function pickVoiceFor(lang){
+    const want=lang.slice(0,2).toLowerCase();
+    const vs=S.tts.voices||[];
+    const isG=v=>/google/i.test(v.name||''); const isS=v=>/samsung/i.test(v.name||'');
+    const starts=v=>(v.lang||'').toLowerCase().startsWith(want);
+    const includes=v=>(v.lang||'').toLowerCase().includes(want);
+    const order=[ v=>isG(v)&&starts(v), v=>isG(v)&&includes(v), v=>!isS(v)&&starts(v), v=>starts(v), v=>includes(v) ];
+    for(const f of order){ const hit=vs.find(f); if(hit) return hit; }
+    return vs.find(starts)||vs[0]||null;
+  }
+  function speak(text,lang,rate=1){
+    if(!('speechSynthesis' in window)) return;
+    try{
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      const v=pickVoiceFor(lang); if(v){u.voice=v;u.lang=v.lang||lang;} else u.lang=lang;
+      u.rate=rate; window.speechSynthesis.speak(u);
+    }catch(e){console.error(e);}
+  }
+  function initTTS(){
+    if(!('speechSynthesis' in window)) return;
+    const load=()=>{S.tts.voices=window.speechSynthesis.getVoices(); S.tts.ready=true;};
+    load(); window.speechSynthesis.onvoiceschanged=load;
+  }
+
+  // ---------- Recording & scoring
+  function startRec(card, expectFR){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ alert('Spracherkennung wird nicht unterstützt.'); return; }
+    const rec=new SR(); rec.lang='fr-FR'; rec.interimResults=false; rec.continuous=false;
+    const btn=card.querySelector('.record'); const bar=card.querySelector('.scoreBar span');
+    const toks=card.querySelector('.tokens'); const understood=card.querySelector('.understood');
+    btn.classList.remove('ready'); understood.style.display='none'; toks.innerHTML='';
+    try{rec.start();}catch{}
+    rec.onresult=e=>{
+      const said=Array.from(e.results).map(r=>r[0].transcript).join(' ');
+      const conf = Math.round((e.results?.[0]?.[0]?.confidence||0)*100);
+      const pct = scoreText(expectFR, said);
+      bar.style.width = Math.max(4,pct)+'%';
+      btn.classList.add('ready');
+      renderTokens(toks, expectFR, said);
+      understood.innerHTML = `<strong>Verstanden:</strong> ${escapeHTML(said)}<br>Konfidenz: ${conf}%`;
+      understood.style.display='block';
+      addLog(pct);
+    };
+    rec.onerror=()=>{btn.classList.add('ready');};
+    rec.onend = ()=>{};
+  }
+  function normalize(s){ return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z'\s]/g,' ').replace(/\s+/g,' ').trim(); }
+  function scoreText(exp, said){
+    const a=normalize(exp).split(' '), b=normalize(said).split(' ');
+    const L=a.length; let hit=0;
+    for(let i=0;i<L;i++){ if(b.includes(a[i])) hit++; }
+    return Math.round((hit/Math.max(1,L))*100);
+  }
+  function renderTokens(holder, exp, said){
+    holder.innerHTML='';
+    const expT=normalize(exp).split(' ');
+    const saidT=new Set(normalize(said).split(' '));
+    expT.forEach(w=>{
+      const span=document.createElement('span'); span.className='tok';
+      let cls='r'; if(saidT.has(w)) cls='g';
+      span.classList.add(cls); span.textContent=w; holder.appendChild(span);
+    });
+  }
+
+  // ---------- log & streaks
+  function addLog(pct){
+    S.log.attempts++; S.log.scores.push({t:Date.now(), pct});
+    if(S.log.scores.length>200) S.log.scores.shift();
+    localStorage.setItem('famlog', JSON.stringify(S.log));
+    refreshStats();
+  }
+  function refreshStats(){
+    $('#statToday').textContent = S.log.scores.filter(x=>{
+      const d=new Date(x.t); const n=new Date(); return d.toDateString()===n.toDateString();
+    }).length;
+    const last10=S.log.scores.slice(-10).map(x=>x.pct);
+    $('#statAvg').textContent = last10.length? Math.round(last10.reduce((a,b)=>a+b,0)/last10.length)+'%' : '–%';
+    // simple streaks
+    $('#streakDay').textContent = dayStreak()+'🔥';
+    $('#streakWeek').textContent= weekStreak()+'🔥';
+  }
+  function dayKey(d){ return d.toISOString().slice(0,10); }
+  function dayStreak(){
+    const byDay=new Set(S.log.scores.map(x=>dayKey(new Date(x.t))));
+    let streak=0; let d=new Date();
+    while(byDay.has(dayKey(d))){ streak++; d.setDate(d.getDate()-1); }
+    return streak;
+  }
+  function weekStreak(){
+    const wk = (d)=>{const t=new Date(d); const day=(t.getDay()+6)%7; t.setDate(t.getDate()-day); t.setHours(0,0,0,0); return t.getTime();};
+    const byW=new Set(S.log.scores.map(x=>wk(x.t)));
+    let s=0; let d=new Date();
+    while(byW.has(wk(d))){ s++; d.setDate(d.getDate()-7); }
+    return s;
+  }
+
+  // ---------- Mic to search
+  (function initMic(){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    const btn=$('#mic'); if(!SR){btn.disabled=true; btn.textContent='Mic nicht verfügbar'; return;}
+    const rec=new SR(); rec.interimResults=false; rec.continuous=false; rec.lang='fr-FR';
+    let active=false;
+    btn.onclick=()=>{ if(active){rec.stop();return;} active=true; btn.textContent='Stoppen'; try{rec.start();}catch{} };
+    rec.onresult=e=>{ const t=Array.from(e.results).map(r=>r[0].transcript).join(' '); $('#q').value=t; S.q=t.toLowerCase(); render(); };
+    rec.onend=()=>{ active=false; btn.textContent='Mikrofon'; };
+    rec.onerror=()=>{ active=false; btn.textContent='Mikrofon'; };
+  })();
+
+  // ---------- Vocab mode
+  $('#vocabLocal').onclick = ()=>{
+    const pool = S.category? S.items.filter(x=>x.categoryKey===S.category) : S.items.slice();
+    if(!pool.length) return;
+    const it = pool[Math.floor(Math.random()*pool.length)];
+    // Prepend a quick card
+    const top = makeCard({ ...it, categoryLabel:'Vokabel (lokal)'});
+    $('#list').prepend(top); top.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  $('#vocabAuto').onclick = ()=>{
+    S.vocabAuto=!S.vocabAuto;
+    $('#vocabAuto').textContent = 'Auto: ' + (S.vocabAuto? 'An':'Aus');
+    if(S.vocabAuto) autoLoop(); 
+  };
+  let autoTimer=null;
+  function autoLoop(){
+    clearTimeout(autoTimer);
+    if(!S.vocabAuto) return;
+    $('#vocabLocal').click();
+    autoTimer=setTimeout(autoLoop, 6000);
+  }
+  $('#vocabOnlyCat').onchange=()=>{}; // reserved
+
+  // Online – Lingua Libre (fixed two-step Commons API)
+  $('#vocabOnline').onclick = vocabNextOnline;
+  async function vocabNextOnline(){
+    try{
+      if(!S.onlineCache.length){
+        // step 1: list files in category
+        const catURL='https://commons.wikimedia.org/w/api.php'
+          +'?action=query&format=json&origin=*'
+          +'&list=categorymembers&cmtitle=Category:Lingua_Libre_pronunciations_in_French'
+          +'&cmtype=file&cmlimit=50';
+        const catRes=await fetch(catURL);
+        if(!catRes.ok) throw new Error('Commons list '+catRes.status);
+        const catData=await catRes.json();
+        const titles=(catData?.query?.categorymembers||[]).map(m=>m.title);
+        if(!titles.length) throw new Error('Keine Dateien gefunden');
+
+        // step 2: resolve to direct URLs
+        const infoURL='https://commons.wikimedia.org/w/api.php'
+          +'?action=query&format=json&origin=*'
+          +'&prop=imageinfo&iiprop=url|mime|timestamp|user'
+          +'&titles='+titles.map(encodeURIComponent).join('|');
+        const infoRes=await fetch(infoURL);
+        if(!infoRes.ok) throw new Error('Commons info '+infoRes.status);
+        const infoData=await infoRes.json();
+        const pages=infoData?.query?.pages||{};
+        const items=Object.values(pages).map(p=>{
+          const ii=p.imageinfo?.[0]; if(!ii?.url) return null;
+          const mime=(ii.mime||'').toLowerCase(); if(!/audio|ogg|mpeg/.test(mime)) return null;
+          let word=(p.title||'').replace(/^File:/,'').replace(/\.[^.]+$/,'');
+          if(word.includes('-')) word=word.split('-').pop();
+          word=word.replace(/_/g,' ').trim();
+          return {title:p.title,url:ii.url,word};
+        }).filter(Boolean);
+        S.onlineCache=items;
+      }
+      if(!S.onlineCache.length){ toast('Keine Online-Treffer'); return; }
+      const pick=S.onlineCache[Math.floor(Math.random()*S.onlineCache.length)];
+      const node=document.createElement('div'); node.className='card';
+      node.innerHTML=`
+        <div class="row" style="justify-content:space-between">
+          <span class="cat">Lingua Libre</span>
+          <a class="cat" href="https://commons.wikimedia.org/wiki/${encodeURIComponent(pick.title)}" target="_blank" rel="noopener">Quelle</a>
+        </div>
+        <div class="fr">${escapeHTML(pick.word)}</div>
+        <div class="de small">Native Aufnahme von Commons</div>
+        <div class="btnrow">
+          <button class="pill play">Abspielen</button>
+          <button class="pill slow">Langsam</button>
+          <button class="pill veryslow">Sehr langsam</button>
+        </div>
+        <audio src="${pick.url}" preload="none"></audio>
+        <button class="pill record">● Aufnehmen</button>
+        <div class="scoreBar"><span></span></div>
+        <div class="tokens"></div>
+        <div class="understood small" style="display:none"></div>
+      `;
+      const aud=node.querySelector('audio');
+      node.querySelector('.play').onclick = ()=>{aud.play().catch(()=>{});};
+      node.querySelector('.slow').onclick = ()=>{aud.playbackRate=0.9; aud.play().catch(()=>{});};
+      node.querySelector('.veryslow').onclick = ()=>{aud.playbackRate=0.75; aud.play().catch(()=>{});};
+      node.querySelector('.record').onclick = ()=>startRec(node, pick.word);
+      $('#list').prepend(node); node.scrollIntoView({behavior:'smooth',block:'center'});
+    }catch(e){ console.error(e); toast('Online-Abruf fehlgeschlagen'); }
+  }
+
+  function toast(msg){
+    const t=document.createElement('div');
+    t.textContent=msg;
+    Object.assign(t.style,{position:'fixed',left:'50%',bottom:'18px',transform:'translateX(-50%)',background:'#223148',color:'#dfe7f2',padding:'10px 14px',border:'1px solid var(--ring)',borderRadius:'10px',zIndex:9999});
+    document.body.appendChild(t); setTimeout(()=>t.remove(),2200);
+  }
+
+  // ---------- boot
+  initTTS(); updateTtsToggle(); refreshStats(); bootLoad();
+})();
+</script>
+</body>
+</html>
